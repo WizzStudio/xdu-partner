@@ -1,0 +1,40 @@
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  redis:
+    host:
+    port: 6379
+    password:
+  datasource:
+    url:
+    username:
+    password:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  servlet:
+    multipart:
+      max-request-size: 40MB
+      max-file-size: 15MB
+  #设定静态文件路径，js,css等
+  web:
+    resources:
+      static-locations: classpath:/templates/,classpath:/static/upload/
+jwt_key: (6个字母)
+netty:
+  port: 8081
+server:
+  port: 8080
+  servlet:
+    context-path: /wz
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    # 测试环境文件存储路径
+uploadFile:
+  # 文件大小 /M
+  maxSize: 10
+file:
+  request-path: /upload/**
+  local-path:
+urlPrefix: https://域名/wz/
+
