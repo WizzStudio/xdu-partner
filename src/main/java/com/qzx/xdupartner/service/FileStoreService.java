@@ -1,9 +1,8 @@
 package com.qzx.xdupartner.service;
 
-import org.springframework.web.multipart.MultipartFile;
-
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.qzx.xdupartner.entity.FileStore;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * <p>

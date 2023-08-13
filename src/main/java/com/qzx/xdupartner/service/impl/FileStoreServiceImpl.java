@@ -1,15 +1,8 @@
 package com.qzx.xdupartner.service.impl;
 
-import java.io.File;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
-import javax.annotation.PostConstruct;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
+import cn.hutool.core.codec.Base64Encoder;
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qzx.xdupartner.constant.SystemConstant;
 import com.qzx.xdupartner.entity.FileStore;
@@ -17,11 +10,15 @@ import com.qzx.xdupartner.exception.ParamErrorException;
 import com.qzx.xdupartner.mapper.FileStoreMapper;
 import com.qzx.xdupartner.service.FileStoreService;
 import com.qzx.xdupartner.util.UserHolder;
-
-import cn.hutool.core.codec.Base64Encoder;
-import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.util.ObjectUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.annotation.PostConstruct;
+import java.io.File;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * <p>
@@ -41,7 +38,8 @@ public class FileStoreServiceImpl extends ServiceImpl<FileStoreMapper, FileStore
 
     @PostConstruct
     public void initPath() {
-        path = path.replace('/', '\\') + '\\';
+        if (!path.startsWith("/"))
+            path = path.replace('/', '\\') + '\\';
 //        .substring(1, path.length());
         log.info("upload path: " + path);
     }

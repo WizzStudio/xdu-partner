@@ -1,33 +1,16 @@
 package com.qzx.xdupartner.service.impl;
 
-import static com.qzx.xdupartner.constant.RedisConstant.USESR_BLOG_LIKED_KEY;
-import static com.qzx.xdupartner.constant.SystemConstant.LIKE_PAGE_SIZE;
-import static com.qzx.xdupartner.constant.SystemConstant.MAX_PAGE_SIZE;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import javax.annotation.Resource;
-
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qzx.xdupartner.constant.RedisConstant;
 import com.qzx.xdupartner.constant.SystemConstant;
 import com.qzx.xdupartner.entity.Blog;
-import com.qzx.xdupartner.entity.FileStore;
 import com.qzx.xdupartner.entity.User;
 import com.qzx.xdupartner.entity.vo.BlogVo;
 import com.qzx.xdupartner.entity.vo.LowTagFrequencyVo;
@@ -38,12 +21,20 @@ import com.qzx.xdupartner.service.BlogService;
 import com.qzx.xdupartner.service.FileStoreService;
 import com.qzx.xdupartner.service.UserService;
 import com.qzx.xdupartner.util.UserHolder;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Service;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.RandomUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
+import javax.annotation.Resource;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import static com.qzx.xdupartner.constant.RedisConstant.USESR_BLOG_LIKED_KEY;
+import static com.qzx.xdupartner.constant.SystemConstant.LIKE_PAGE_SIZE;
+import static com.qzx.xdupartner.constant.SystemConstant.MAX_PAGE_SIZE;
 
 /**
  * <p>
@@ -54,6 +45,7 @@ import cn.hutool.json.JSONUtil;
  * @since 2023-08-12
  */
 @Service
+@Slf4j
 public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements BlogService {
     private static final ExecutorService executor = Executors.newFixedThreadPool(10);
     @Resource
@@ -67,10 +59,13 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
     private boolean blogIsLiked(Long id) {
         Long userId = UserHolder.getUserId();
+//        log.warn(String.valueOf(userId));
         if (userId < 0) {
             return false;
         }
-        return stringRedisTemplate.opsForZSet().rank(USESR_BLOG_LIKED_KEY + userId, String.valueOf(id)) != null;
+        Long rank = stringRedisTemplate.opsForZSet().rank(USESR_BLOG_LIKED_KEY + userId, String.valueOf(id));
+//        log.warn(id+" isLiked:"+rank);
+        return rank != null;
     }
 
     private List<BlogVo> getBlogVos(List<Blog> records, String redisKey) {
@@ -82,7 +77,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
                 //TODO 分析lowTags
                 BlogVo blogVo = transferToBlogVo(blog);
                 String readKey = RedisConstant.BLOG_READ_KEY + blogVo.getId();
-                stringRedisTemplate.opsForHyperLogLog().add(readKey,String.valueOf(UserHolder.getUserId()));
+                stringRedisTemplate.opsForHyperLogLog().add(readKey, String.valueOf(UserHolder.getUserId()));
                 voRecords.add(blogVo);
             }
         });
@@ -100,18 +95,25 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         }
         //image
         String imageStr = blog.getImages();
-        if(StrUtil.isNotBlank(imageStr)){
-            List<Long> imageIdList =
-                    Arrays.stream(imageStr.split(SystemConstant.PICTURE_CONJUNCTION)).map(Long::valueOf).collect(Collectors.toList());
-            List<FileStore> images = fileStoreService.listByIds(imageIdList);
-            List<String> imageUris = images.stream().map(FileStore::getFileUri).collect(Collectors.toList());
+        if (StrUtil.isNotBlank(imageStr)) {
+            List<String> imageUris =
+                    Arrays.stream(imageStr.split(SystemConstant.PICTURE_CONJUNCTION)).collect(Collectors.toList());
+//            List<Long> imageIdList =
+//                    Arrays.stream(imageStr.split(SystemConstant.PICTURE_CONJUNCTION)).map(Long::valueOf).collect
+//                    (Collectors.toList());
+//            List<FileStore> images = fileStoreService.listByIds(imageIdList);
+//            List<String> imageUris = images.stream().map(FileStore::getFileUri).collect(Collectors.toList());
             blogVo.setImages(imageUris);
         }
         //lowTag
-        List<String> lowTagList = Arrays.stream(blog.getLowTags().split(SystemConstant.LOW_TAG_CONJUNCTION)).collect(Collectors.toList());
+        List<String> lowTagList =
+                Arrays.stream(blog.getLowTags().split(SystemConstant.LOW_TAG_CONJUNCTION)).collect(Collectors.toList());
         blogVo.setLowTags(lowTagList);
+        blogVo.setHighTag(blog.getHighTagId());
         //isLiked
-        blogVo.setIsLiked(blogIsLiked(blog.getId()));
+        boolean isLiked = blogIsLiked(blog.getId());
+//        log.warn(blog.getId()+" isLiked:"+isLiked);
+        blogVo.setIsLiked(isLiked);
         return blogVo;
     }
 
@@ -187,7 +189,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
                 throw new ApiException("该帖子不存在");
             }
             BlogVo blogVo = transferToBlogVo(byId);
-            stringRedisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(blogVo), RandomUtil.randomInt(SystemConstant.RANDOM_TTL_MIN, SystemConstant.RANDOM_TTL_MAX),
+            stringRedisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(blogVo),
+                    RandomUtil.randomInt(SystemConstant.RANDOM_TTL_MIN, SystemConstant.RANDOM_TTL_MAX),
                     TimeUnit.SECONDS);
             return blogVo;
         }
@@ -195,7 +198,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
     @Override
     public List<LowTagFrequencyVo> getTagWordCount(Integer typeId) {
-        Map<Object, Object> wordFrequencyMap = stringRedisTemplate.opsForHash().entries(RedisConstant.LOW_TAG_FREQUENCY + typeId);
+        Map<Object, Object> wordFrequencyMap =
+                stringRedisTemplate.opsForHash().entries(RedisConstant.LOW_TAG_FREQUENCY + typeId);
         return wordFrequencyMap.entrySet().stream().map(entry ->
                         new LowTagFrequencyVo(
                                 (String) entry.getKey(),
@@ -231,6 +235,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         QueryWrapper<Blog> blogQueryWrapper = new QueryWrapper<>();
         blogQueryWrapper
                 .like("low_tags", keyword)
+                .eq("high_tag_id", typeId)
                 .orderByDesc("id");
         Page<Blog> page = blogMapper.selectPage(new Page<>(current,
                 MAX_PAGE_SIZE), blogQueryWrapper);

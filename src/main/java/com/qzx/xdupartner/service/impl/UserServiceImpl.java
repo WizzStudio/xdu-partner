@@ -1,12 +1,8 @@
 package com.qzx.xdupartner.service.impl;
 
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.Resource;
-
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qzx.xdupartner.constant.RedisConstant;
 import com.qzx.xdupartner.constant.SystemConstant;
@@ -16,10 +12,11 @@ import com.qzx.xdupartner.exception.ApiException;
 import com.qzx.xdupartner.mapper.UserMapper;
 import com.qzx.xdupartner.service.FileStoreService;
 import com.qzx.xdupartner.service.UserService;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Service;
 
-import cn.hutool.core.util.RandomUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
+import javax.annotation.Resource;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -39,8 +36,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public UserVo getUserVoById(Long userId) {
         String userVoJson = stringRedisTemplate.opsForValue().get(RedisConstant.USERVO_CACHE + userId);
-        if(StrUtil.isNotBlank(userVoJson)){
-            stringRedisTemplate.expire(RedisConstant.USERVO_CACHE + userId,RedisConstant.CACHE_TTL,
+        if (StrUtil.isNotBlank(userVoJson)) {
+            stringRedisTemplate.expire(RedisConstant.USERVO_CACHE + userId, RedisConstant.CACHE_TTL,
                     TimeUnit.MINUTES);
             return JSONUtil.toBean(userVoJson, UserVo.class);
         }
@@ -52,7 +49,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         userVo.setId(byId.getId());
         userVo.setNickName(byId.getNickName());
         userVo.setIcon(fileStoreService.getById(byId.getIcon()).getFileUri());
-        stringRedisTemplate.opsForValue().set(RedisConstant.USERVO_CACHE + userId,JSONUtil.toJsonStr(userVo),RedisConstant.CACHE_TTL,
+        stringRedisTemplate.opsForValue().set(RedisConstant.USERVO_CACHE + userId, JSONUtil.toJsonStr(userVo),
+                RedisConstant.CACHE_TTL,
                 TimeUnit.MINUTES);
         return userVo;
     }
@@ -64,7 +62,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setMyDescription("写几句话来描述一下自己吧~");
         user.setStuId(stuId);
         //TODO 放入常量池，上传数据库图片，匿名的头像
-        user.setIcon(String.valueOf(RandomUtil.randomInt(SystemConstant.RANDOM_ICON_MIN, SystemConstant.RANDOM_ICON_MAX)));
+        user.setIcon(String.valueOf(RandomUtil.randomInt(SystemConstant.RANDOM_ICON_MIN,
+                SystemConstant.RANDOM_ICON_MAX)));
         user.setNickName(SystemConstant.DEFAULT_NICKNAME +
                 stringRedisTemplate.opsForValue().increment(RedisConstant.DEFAULT_NICKNAME_INCREMENT));
         save(user);

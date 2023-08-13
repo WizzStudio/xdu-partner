@@ -1,5 +1,21 @@
 package com.qzx.xdupartner.util;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.img.Img;
+import cn.hutool.core.img.ImgUtil;
+import cn.hutool.http.HttpResponse;
+import cn.hutool.http.HttpUtil;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
+import com.qzx.xdupartner.constant.RedisConstant;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
 import java.awt.image.BufferedImage;
 import java.net.HttpCookie;
 import java.util.HashMap;
@@ -8,25 +24,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-
-import javax.annotation.Resource;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.stereotype.Component;
-
-import com.qzx.xdupartner.constant.RedisConstant;
-
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.img.Img;
-import cn.hutool.core.img.ImgUtil;
-import cn.hutool.http.HttpResponse;
-import cn.hutool.http.HttpUtil;
-import cn.hutool.json.JSONObject;
-import cn.hutool.json.JSONUtil;
 
 /**
  * 第一次get请求authTarget获取hidden信息，

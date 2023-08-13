@@ -22,7 +22,7 @@ public class RedisConstant {
     public static final String USER_LIKE_BLOG_SET_KEY = "user:blog:set:like:";
     public static final String USER_ONES_BLOG_SET_KEY = "user:blog:set:ones:";
     public static final String SEND_MESSAGE = ":send:message:";
-    public static final long IS_FRIEND_TTL = 30;
+    public static final long IS_FRIEND_TTL = 5;
     public static final String IS_FRIEND = ":is:friend:";
     public static final String BLOG_CACHE = "blog:cache:";
     public static final int MESSAGE_MAX_SIZE = 100;

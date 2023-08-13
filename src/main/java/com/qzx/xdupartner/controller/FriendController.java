@@ -1,19 +1,7 @@
 package com.qzx.xdupartner.controller;
 
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.annotation.Resource;
-import javax.validation.constraints.NotNull;
-
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
+import cn.hutool.core.util.StrUtil;
 import com.qzx.xdupartner.entity.Friend;
 import com.qzx.xdupartner.entity.Message;
 import com.qzx.xdupartner.entity.enumeration.MessageType;
@@ -23,8 +11,13 @@ import com.qzx.xdupartner.service.FriendService;
 import com.qzx.xdupartner.service.MessageService;
 import com.qzx.xdupartner.service.UserService;
 import com.qzx.xdupartner.util.UserHolder;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
-import cn.hutool.core.util.StrUtil;
+import javax.annotation.Resource;
+import javax.validation.constraints.NotNull;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -51,11 +44,19 @@ public class FriendController {
         if (ifFriend) {
             throw new ApiException("你们已经是好友啦，请勿重复添加哟！");
         } else {
-            Message makeFriendMessage = new Message();
-            makeFriendMessage.setType(MessageType.ADD_FRIEND.getCode());
-            makeFriendMessage.setToId(friendId);
-            makeFriendMessage.setContent(message);
-            messageService.sendMessage(makeFriendMessage);
+            Integer count =
+                    friendService.query().eq("user_id", UserHolder.getUserId()).eq("friend_id", friendId).count();
+            if ((count == 0)) {
+                Message makeFriendMessage = new Message();
+                makeFriendMessage.setType(MessageType.ADD_FRIEND.getCode());
+                makeFriendMessage.setToId(friendId);
+                makeFriendMessage.setContent(message);
+                messageService.sendMessage(makeFriendMessage);
+                Friend friend = new Friend();
+                friend.setUserId(UserHolder.getUserId());
+                friend.setFriendId(friendId);
+                friendService.save(friend);
+            } else throw new ApiException("你已发送过好友请求");
         }
         return "发送好友请求成功！";
     }
@@ -67,8 +68,8 @@ public class FriendController {
             throw new RuntimeException("你们之前就是好友了,请勿重复添加哟！");
         }
         boolean exist =
-                friendService.count(friendService.query().eq("user_id", friendId)
-                        .eq("friend_id", UserHolder.getUserId())) > 0;
+                friendService.query().eq("user_id", friendId)
+                        .eq("friend_id", UserHolder.getUserId()).count() > 0;
         if (exist) {
             Friend entity = new Friend();
             entity.setUserId(UserHolder.getUserId());
@@ -85,7 +86,7 @@ public class FriendController {
     //查看自己的所有好友
     public List<UserVo> allFriends() {
         List<Friend> friends = friendService.query().eq("user_id", UserHolder.getUserId()).list();
-        return friends.stream().map(friend -> {
+        return friends.stream().filter(f -> friendService.judgeIfFriend(f.getFriendId())).map(friend -> {
             UserVo userVoById = userService.getUserVoById(friend.getFriendId());
             String alterName = friend.getAlterName();
             if (StrUtil.isNotBlank(alterName)) {
@@ -98,11 +99,9 @@ public class FriendController {
     @PostMapping(value = "/changeFriendAlterName", produces = "application/json;charset=utf-8")
     public String changeFriendAlterName(@Validated @RequestParam @NotNull Long friendId,
                                         @RequestParam String alterName) {
+        if ("".equals(alterName)) return "备注不能为空";
         boolean update = friendService.update().eq("user_id", UserHolder.getUserId()).eq("friend_id", friendId).set(
                 "alter_name", alterName).update();
-        if (!update) {
-            throw new RuntimeException("修改失败");
-        }
         return "修改成功";
     }
 }

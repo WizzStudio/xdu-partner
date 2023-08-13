@@ -1,30 +1,21 @@
 package com.qzx.xdupartner.controller;
 
 
-import java.util.List;
-
-import javax.annotation.Resource;
-import javax.validation.constraints.NotNull;
-
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
+import cn.hutool.core.bean.BeanUtil;
 import com.qzx.xdupartner.constant.RedisConstant;
 import com.qzx.xdupartner.entity.Message;
 import com.qzx.xdupartner.entity.ReqMessage;
 import com.qzx.xdupartner.entity.RspMessage;
 import com.qzx.xdupartner.entity.vo.MessageVo;
-import com.qzx.xdupartner.exception.ApiException;
 import com.qzx.xdupartner.service.MessageService;
 import com.qzx.xdupartner.util.UserHolder;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
-import cn.hutool.core.bean.BeanUtil;
+import javax.annotation.Resource;
+import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * <p>
@@ -68,11 +59,9 @@ public class MessageController {
     public String read(@Validated @RequestParam @NotNull Long fromId,
                        @Validated @RequestParam @NotNull Long messageId) {
         stringRedisTemplate.delete(UserHolder.getUserId() + RedisConstant.OFFLINE_MESSAGE + fromId);
-        boolean update = messageService.update().eq("from_id", fromId).eq("to_id", UserHolder.getUserId()).le("id", messageId
+        boolean update = messageService.update().eq("from_id", fromId).eq("to_id", UserHolder.getUserId()).le("id",
+                messageId
         ).set("is_received", 1).update();
-        if (!update) {
-            throw new ApiException("消息已读状态更新失败");
-        }
         return "消息已读";
     }
 
@@ -81,7 +70,7 @@ public class MessageController {
             ,
                                     @Validated @RequestParam @NotNull Long messageId
     ) {
-        return messageService.query10HistoryBellowId(fromId, messageId);
+        return messageService.query10HistoryBellowEqualId(fromId, messageId);
     }
 }
 

@@ -1,26 +1,10 @@
 package com.qzx.xdupartner.controller;
 
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import javax.annotation.Resource;
-import javax.validation.constraints.NotNull;
-
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.qzx.xdupartner.constant.RedisConstant;
 import com.qzx.xdupartner.constant.SystemConstant;
 import com.qzx.xdupartner.entity.FileStore;
@@ -35,11 +19,18 @@ import com.qzx.xdupartner.util.AesUtil;
 import com.qzx.xdupartner.util.JwtUtil;
 import com.qzx.xdupartner.util.UserHolder;
 import com.qzx.xdupartner.util.XduAuthUtil;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
+import javax.annotation.Resource;
+import javax.validation.constraints.NotNull;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -67,7 +58,9 @@ public class UserController {
     private User transferToUser(UserInfoVo userInfoVo) {
         User user = BeanUtil.copyProperties(userInfoVo, User.class);
         user.setId(UserHolder.getUserId());
-        user.setIcon(AesUtil.decryptHex(userInfoVo.getIcon()));
+        String icon = userInfoVo.getIcon();
+        if (StrUtil.isNotBlank(icon))
+            user.setIcon(AesUtil.decryptHex(icon));
         List<String> picture = userInfoVo.getPicture();
         if (picture != null && !picture.isEmpty()) {
             if (picture.size() > 3) {
@@ -116,9 +109,11 @@ public class UserController {
         User user = transferToUser(userInfoVo);
         userService.updateById(user);
         stringRedisTemplate.opsForValue()
-                .set(RedisConstant.LOGIN_PREFIX + user.getId(), JSONUtil.toJsonStr(user), RedisConstant.LOGIN_VALID_TTL,
+                .set(RedisConstant.LOGIN_PREFIX + UserHolder.getUserId(), JSONUtil.toJsonStr(user),
+                        RedisConstant.LOGIN_VALID_TTL,
                         TimeUnit.HOURS);
-        UserHolder.saveUser(user);
+        UserHolder.saveUser(userService.getById(UserHolder.getUserId()));
+        stringRedisTemplate.delete(RedisConstant.USERVO_CACHE + UserHolder.getUserId());
         return "修改成功";
     }
 
@@ -166,7 +161,7 @@ public class UserController {
 
     @GetMapping(value = "/me")
     public UserInfoVo ofMe() {
-        User user = UserHolder.getUser();
+        User user = userService.getById(UserHolder.getUserId());
         return getUserInfoVo(user);
     }
 

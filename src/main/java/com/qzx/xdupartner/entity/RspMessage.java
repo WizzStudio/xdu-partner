@@ -1,11 +1,11 @@
 package com.qzx.xdupartner.entity;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
-
 import cn.hutool.json.JSONUtil;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import lombok.Data;
+
+import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @Data
 public class RspMessage implements Serializable {

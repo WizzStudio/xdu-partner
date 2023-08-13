@@ -1,11 +1,9 @@
 package com.qzx.xdupartner.entity.vo;
 
+import lombok.Data;
+
 import java.time.LocalDateTime;
 import java.util.List;
-
-import com.qzx.xdupartner.entity.enumeration.HighTag;
-
-import lombok.Data;
 
 @Data
 public class BlogVo {
@@ -37,7 +35,7 @@ public class BlogVo {
     /**
      * 一级分类
      */
-    private HighTag highTag;
+    private int highTag;
     /**
      * 二级分类
      */

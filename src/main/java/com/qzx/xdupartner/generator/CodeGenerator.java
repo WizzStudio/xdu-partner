@@ -1,8 +1,6 @@
 package com.qzx.xdupartner.generator;
 
-import java.util.ArrayList;
-import java.util.Scanner;
-
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.core.exceptions.MybatisPlusException;
@@ -15,7 +13,8 @@ import com.baomidou.mybatisplus.generator.config.po.TableFill;
 import com.baomidou.mybatisplus.generator.config.rules.DateType;
 import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
 
-import cn.hutool.core.util.StrUtil;
+import java.util.ArrayList;
+import java.util.Scanner;
 
 public class CodeGenerator {
 

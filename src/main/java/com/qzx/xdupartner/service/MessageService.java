@@ -1,11 +1,11 @@
 package com.qzx.xdupartner.service;
 
-import java.util.List;
-
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.qzx.xdupartner.entity.Message;
 import com.qzx.xdupartner.entity.RspMessage;
 import com.qzx.xdupartner.entity.vo.MessageVo;
+
+import java.util.List;
 
 /**
  * <p>
@@ -21,5 +21,5 @@ public interface MessageService extends IService<Message> {
 
     List<MessageVo> connect();
 
-    List<RspMessage> query10HistoryBellowId(Long fromId, Long messageId);
+    List<RspMessage> query10HistoryBellowEqualId(Long fromId, Long messageId);
 }

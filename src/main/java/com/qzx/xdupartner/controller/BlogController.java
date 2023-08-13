@@ -1,27 +1,9 @@
 package com.qzx.xdupartner.controller;
 
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.annotation.Resource;
-import javax.validation.constraints.DecimalMax;
-import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
 import com.huaban.analysis.jieba.JiebaSegmenter;
-import com.huaban.analysis.jieba.SegToken;
 import com.qzx.xdupartner.constant.SystemConstant;
 import com.qzx.xdupartner.entity.Blog;
 import com.qzx.xdupartner.entity.dto.BlogDto;
@@ -30,11 +12,17 @@ import com.qzx.xdupartner.entity.vo.LowTagFrequencyVo;
 import com.qzx.xdupartner.exception.ApiException;
 import com.qzx.xdupartner.exception.ParamErrorException;
 import com.qzx.xdupartner.service.BlogService;
-import com.qzx.xdupartner.util.AesUtil;
 import com.qzx.xdupartner.util.UserHolder;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.StrUtil;
+import javax.annotation.Resource;
+import javax.validation.constraints.DecimalMax;
+import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <p>
@@ -88,8 +76,9 @@ public class BlogController {
         }
         List<String> imageList = blogDto.getImageList();
         if (imageList != null) {
-            List<String> imageIds = imageList.stream().map(AesUtil::decryptHex).collect(Collectors.toList());
-            String images = StrUtil.join(SystemConstant.PICTURE_CONJUNCTION, imageIds);
+//            List<String> imageIds = imageList.stream().map(AesUtil::decryptHex).collect(Collectors.toList());
+//            String images = StrUtil.join(SystemConstant.PICTURE_CONJUNCTION, imageIds);
+            String images = StrUtil.join(SystemConstant.PICTURE_CONJUNCTION, imageList);
             blog.setImages(images);
         }
         return blog;
@@ -118,7 +107,8 @@ public class BlogController {
     }
 
     @PostMapping(value = "/update/{id}", produces = "application/json;charset=utf-8")
-    public String updateBlog(@PathVariable Long id, @Validated @RequestBody @NotNull(message = "需要提交帖子") BlogDto blogDto) {
+    public String updateBlog(@PathVariable Long id,
+                             @Validated @RequestBody @NotNull(message = "需要提交帖子") BlogDto blogDto) {
         checkBlogDtoParam(blogDto);
         Blog blog = transferToBlogClass(blogDto);
         blog.setId(id);
@@ -144,7 +134,8 @@ public class BlogController {
     }
 
     @GetMapping(value = "/queryOnesBlog", produces = "application/json;charset=utf-8")
-    public List<BlogVo> queryOnesBlogs(@RequestParam(value = "current", defaultValue = "1") Integer current, @RequestParam Long userId) {
+    public List<BlogVo> queryOnesBlogs(@RequestParam(value = "current", defaultValue = "1") Integer current,
+                                       @RequestParam Long userId) {
         return blogService.getOnesBlogVo(userId, current);
     }
 
@@ -172,8 +163,11 @@ public class BlogController {
     @GetMapping(value = "/searchTagWordByTypeId", produces = "application/json;charset=utf-8")
     public List<BlogVo> searchLowTagsByTypeId(@Validated @DecimalMax(value = "4", message = "一级标签类型不合法") @DecimalMin(value =
             "1", message = "一级标签类型不合法") @RequestParam Integer typeId,
-                                              @Validated @NotNull(message = "搜索词不能为空") String keyword, @RequestParam(value =
-            "current", defaultValue = "1") Integer current) {
+                                              @Validated @NotNull(message = "搜索词不能为空") String keyword,
+                                              @RequestParam(value =
+                                                      "current", defaultValue = "1") Integer current) {
+        if (keyword.equals("all"))
+            keyword = "";
         return blogService.searchByTypeIdContainsLowTag(typeId, keyword, current);
     }
 

@@ -35,6 +35,6 @@ uploadFile:
   maxSize: 10
 file:
   request-path: /upload/**
-  local-path:
-urlPrefix: https://域名/wz/
+  local-path: /data/static/upload/
+urlPrefix: https://服务器域名/wz/
 

@@ -3,7 +3,6 @@ package com.qzx.xdupartner.exception;
 
 import com.qzx.xdupartner.entity.vo.ResultCode;
 import com.qzx.xdupartner.entity.vo.StatusCode;
-
 import lombok.Getter;
 
 @Getter

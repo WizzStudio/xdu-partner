@@ -3,6 +3,7 @@ package com.qzx.xdupartner.aop;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qzx.xdupartner.entity.vo.ResultCode;
+import com.qzx.xdupartner.entity.vo.ResultVo;
 import com.qzx.xdupartner.exception.ApiException;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
@@ -11,8 +12,6 @@ import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
-
-import com.qzx.xdupartner.entity.vo.ResultVo;
 
 
 @RestControllerAdvice(basePackages = {"com.qzx.xdupartner"})
@@ -25,7 +24,7 @@ public class ControllerResponseAdvice implements ResponseBodyAdvice<Object> {
     @Override
     public Object beforeBodyWrite(Object data, MethodParameter returnType, MediaType mediaType, Class<?
             extends HttpMessageConverter<?>> aClass, ServerHttpRequest request, ServerHttpResponse response) {
-         //String类型不能直接包装
+        //String类型不能直接包装
         if (returnType.getGenericParameterType().equals(String.class)) {
             ObjectMapper objectMapper = new ObjectMapper();
             try {

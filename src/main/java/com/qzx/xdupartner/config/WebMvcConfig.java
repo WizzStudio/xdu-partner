@@ -1,20 +1,17 @@
 package com.qzx.xdupartner.config;
 
 
-import java.io.File;
-
-import javax.annotation.Resource;
-
+import com.qzx.xdupartner.intercepter.LoginInterceptor;
+import com.qzx.xdupartner.intercepter.TokenInterceptor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import com.qzx.xdupartner.intercepter.LoginInterceptor;
-import com.qzx.xdupartner.intercepter.TokenInterceptor;
-
-import lombok.extern.slf4j.Slf4j;
+import javax.annotation.Resource;
+import java.io.File;
 
 /**
  * <a href="https://blog.csdn.net/jerry11112/article/details/108352526">...</a>
@@ -58,10 +55,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(tokenInterceptor).addPathPatterns("/**").excludePathPatterns(URL_WHITELISTS).order(0);
-        registry.addInterceptor(loginInterceptor).excludePathPatterns(URL_WHITELISTS)
-                .excludePathPatterns(
-                        URL_WHITELISTS).order(1);
+//        registry.addInterceptor(tokenInterceptor).addPathPatterns("/**").excludePathPatterns(URL_WHITELISTS).order(0);
+        registry.addInterceptor(tokenInterceptor).addPathPatterns("/**").order(0);
+        registry.addInterceptor(loginInterceptor).addPathPatterns("/**").excludePathPatterns(URL_WHITELISTS).order(1);
 
     }
 
