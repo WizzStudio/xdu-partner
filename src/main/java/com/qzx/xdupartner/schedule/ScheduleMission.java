@@ -17,6 +17,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -37,7 +38,10 @@ public class ScheduleMission {
     private StringRedisTemplate stringRedisTemplate;
     @Value("${file.dict-path}")
     private String dictPath;
-
+    @PostConstruct
+    public void init(){
+        update();
+    }
     /**
      * 定时更新问题浏览量到数据库中
      * 每天凌晨两点跑一次
@@ -163,7 +167,6 @@ public class ScheduleMission {
                         List<String> process = segmenter.sentenceProcess(tag);
                         tagWords.addAll(process);
                     });
-                    log.warn(i + ":" + tagWords);
                     executor.submit(new Thread(() -> {
                         tagWords.forEach(word -> {
                             stringRedisTemplate.opsForHash().increment(redisKey, word, 1);
