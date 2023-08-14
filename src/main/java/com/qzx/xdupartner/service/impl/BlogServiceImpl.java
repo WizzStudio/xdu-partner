@@ -77,8 +77,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
                 //TODO 分析lowTags
                 BlogVo blogVo = transferToBlogVo(blog);
                 String readKey = RedisConstant.BLOG_READ_KEY + blogVo.getId();
-                blogVo.setViewTimes(blogVo.getViewTimes()+Math.toIntExact(stringRedisTemplate.opsForHyperLogLog().add(readKey,
-                        String.valueOf(UserHolder.getUserId()))));
+                blogVo.setViewTimes((int) (blogVo.getViewTimes()+ stringRedisTemplate.opsForValue().increment(readKey)));
                 voRecords.add(blogVo);
             }
         });

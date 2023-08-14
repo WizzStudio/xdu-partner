@@ -67,7 +67,7 @@ public class ScheduleMission {
         try {
             for (String key : keys
             ) {
-                Long viewTimes = stringRedisTemplate.opsForHyperLogLog().size(key);
+                Long viewTimes = Long.valueOf(stringRedisTemplate.opsForValue().get(key));
                 // 将key拆分
                 String split = key.substring(key.lastIndexOf(':') + 1);
                 // 根据问题id获取
