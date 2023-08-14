@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -40,9 +41,9 @@ public class ScheduleMission {
     @Value("${file.dict-path}")
     private String dictPath;
     @PostConstruct
-    public void init(){
+    public void init() throws IOException {
         if(!FileUtil.exist(dictPath)){
-            FileUtil.newFile(dictPath);
+            FileUtil.newFile(dictPath).createNewFile();
         }
         update();
     }
