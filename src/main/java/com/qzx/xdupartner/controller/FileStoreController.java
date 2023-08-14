@@ -65,9 +65,6 @@ public class FileStoreController {
 
     @PostMapping(value = "/insertDict", produces = "application/json;charset=utf-8")
     public void insertDict(@Validated @NotBlank(message = "词语不能为空") @RequestParam String keyword) {
-        if(!FileUtil.exist(dictPath)){
-            FileUtil.newFile(dictPath);
-        }
         FileUtil.appendString(keyword + " 1 n\n", dictPath, StandardCharsets.UTF_8);
     }
 

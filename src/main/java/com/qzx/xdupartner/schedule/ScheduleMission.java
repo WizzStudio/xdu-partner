@@ -1,6 +1,5 @@
 package com.qzx.xdupartner.schedule;
 
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.huaban.analysis.jieba.JiebaSegmenter;
@@ -40,13 +39,12 @@ public class ScheduleMission {
     private StringRedisTemplate stringRedisTemplate;
     @Value("${file.dict-path}")
     private String dictPath;
+
     @PostConstruct
     public void init() throws IOException {
-        if(!FileUtil.exist(dictPath)){
-            FileUtil.newFile(dictPath).createNewFile();
-        }
         update();
     }
+
     /**
      * 定时更新问题浏览量到数据库中
      * 每天凌晨两点跑一次
