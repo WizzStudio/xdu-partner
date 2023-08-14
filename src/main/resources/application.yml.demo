@@ -36,5 +36,6 @@ uploadFile:
 file:
   request-path: /upload/**
   local-path: /data/static/upload/
+  dict-path:  /data/static/dict.txt
 urlPrefix: https://服务器域名/wz/
 

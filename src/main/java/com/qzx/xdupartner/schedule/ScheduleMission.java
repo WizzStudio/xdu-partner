@@ -3,6 +3,7 @@ package com.qzx.xdupartner.schedule;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.huaban.analysis.jieba.JiebaSegmenter;
+import com.huaban.analysis.jieba.WordDictionary;
 import com.qzx.xdupartner.constant.RedisConstant;
 import com.qzx.xdupartner.constant.SystemConstant;
 import com.qzx.xdupartner.entity.Blog;
@@ -10,12 +11,15 @@ import com.qzx.xdupartner.entity.ScheduleLog;
 import com.qzx.xdupartner.mapper.BlogMapper;
 import com.qzx.xdupartner.mapper.ScheduleLogMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -24,7 +28,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class ScheduleMission {
-    private static final JiebaSegmenter segmenter = new JiebaSegmenter();
     private static final ExecutorService executor = Executors.newFixedThreadPool(10);
     @Resource
     private ScheduleLogMapper scheduleLogMapper;
@@ -32,6 +35,8 @@ public class ScheduleMission {
     private BlogMapper blogMapper;
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+    @Value("${file.dict-path}")
+    private String dictPath;
 
     /**
      * 定时更新问题浏览量到数据库中
@@ -131,6 +136,9 @@ public class ScheduleMission {
 //    @Scheduled(cron = "0/5 0/1 * * * ?")
     @Transactional(rollbackFor = Exception.class)
     public void update() {
+        File dictWords = new File(dictPath);
+        WordDictionary.getInstance().loadUserDict(dictWords.toPath(), StandardCharsets.UTF_8);
+        JiebaSegmenter segmenter = new JiebaSegmenter();
         log.info("开始执行lowTag分析");
         long start = System.currentTimeMillis();
         ScheduleLog scheduleLog = new ScheduleLog();
@@ -139,7 +147,10 @@ public class ScheduleMission {
         try {
             QueryWrapper<Blog> queryWrapper = new QueryWrapper<Blog>();
             for (int i = 1; i <= 4; i++) {
-                List<Blog> blogs = blogMapper.selectList(queryWrapper.eq("high_tag_id", i));
+//                List<Blog> blogs = blogMapper.selectList(queryWrapper.eq("high_tag_id", i));
+                Map<String, Object> map = new HashMap<>();
+                map.put("high_tag_id", i);
+                List<Blog> blogs = blogMapper.selectByMap(map);
                 if (blogs == null || blogs.size() == 0) {
                     continue;
                 }
@@ -152,6 +163,7 @@ public class ScheduleMission {
                         List<String> process = segmenter.sentenceProcess(tag);
                         tagWords.addAll(process);
                     });
+                    log.warn(i + ":" + tagWords);
                     executor.submit(new Thread(() -> {
                         tagWords.forEach(word -> {
                             stringRedisTemplate.opsForHash().increment(redisKey, word, 1);

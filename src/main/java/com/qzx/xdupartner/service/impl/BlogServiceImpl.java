@@ -204,7 +204,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
                         new LowTagFrequencyVo(
                                 (String) entry.getKey(),
                                 Long.valueOf((String) entry.getValue())))
-                .sorted((a, b) -> Math.toIntExact(a.getCount() - b.getCount()))
+                .sorted((a, b) -> Math.toIntExact(b.getCount() - a.getCount()))
                 .limit(10).collect(Collectors.toList());
     }
 
