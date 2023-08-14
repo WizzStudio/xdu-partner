@@ -1,5 +1,6 @@
 package com.qzx.xdupartner.schedule;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.huaban.analysis.jieba.JiebaSegmenter;
@@ -40,6 +41,9 @@ public class ScheduleMission {
     private String dictPath;
     @PostConstruct
     public void init(){
+        if(!FileUtil.exist(dictPath)){
+            FileUtil.newFile(dictPath);
+        }
         update();
     }
     /**
