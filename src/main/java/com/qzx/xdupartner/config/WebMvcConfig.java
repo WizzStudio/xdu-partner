@@ -58,7 +58,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
 //        registry.addInterceptor(tokenInterceptor).addPathPatterns("/**").excludePathPatterns(URL_WHITELISTS).order(0);
         registry.addInterceptor(tokenInterceptor).addPathPatterns("/**").order(0);
         registry.addInterceptor(loginInterceptor).addPathPatterns("/**").excludePathPatterns(URL_WHITELISTS).order(1);
-
     }
 
     public static final String[] URL_WHITELISTS = {

@@ -69,7 +69,12 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     }
 
     private List<BlogVo> getBlogVos(List<Blog> records, String redisKey) {
+        if (records == null || records.size() == 0) return new ArrayList<>();
         Set<String> viewed = stringRedisTemplate.opsForSet().members(redisKey + UserHolder.getUserId());
+        String[] idStrings = records.stream().map(blog -> String.valueOf(blog.getId())).toArray(String[]::new);
+        stringRedisTemplate.opsForSet().add(redisKey + UserHolder.getUserId(), idStrings);
+        stringRedisTemplate.expire(redisKey + UserHolder.getUserId(), RedisConstant.USER_BLOG_SET_TIME,
+                TimeUnit.SECONDS);
         List<BlogVo> voRecords = new ArrayList<>(MAX_PAGE_SIZE);
         records.forEach(blog -> {
             //当显示过的时候跳过
@@ -77,8 +82,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
                 //TODO 分析lowTags
                 BlogVo blogVo = transferToBlogVo(blog);
                 String readKey = RedisConstant.BLOG_READ_KEY + blogVo.getId();
-                blogVo.setViewTimes((int) (blogVo.getViewTimes()+ stringRedisTemplate.opsForValue().increment(readKey)));
+                blogVo.setViewTimes((int) (blogVo.getViewTimes() + stringRedisTemplate.opsForValue().increment(readKey)));
                 voRecords.add(blogVo);
+                ;
             }
         });
         return voRecords;

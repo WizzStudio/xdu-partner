@@ -10,7 +10,7 @@ public class RedisConstant {
     public static final String USER_SEARCH_BLOG_SET_KEY = "user:blog:set:search:";
     public static final String NEED_CAPTCHA_USER = "user:needcaptcha:";
     public static final String IM_SERVER_ONLINE_COUNT = "message:online:count:";
-    public static final int USER_BLOG_SET_TIME = 10 * 60;
+    public static final int USER_BLOG_SET_TIME = 2 * 60;
 
     public static final String LOGIN_PREFIX = "user:login:";
     public static final Integer LOGIN_VALID_TTL = 24 * 3;
@@ -29,6 +29,7 @@ public class RedisConstant {
     public static final String LOW_TAG_FREQUENCY = "low:tag:frequency:";
     public static final String USERVO_CACHE = "uservo:cache:";
     public static final int CACHE_TTL = 5;
+    public static final String BOARD = "message:board";
 
     public static DefaultRedisScript<Object> insertMessage = new DefaultRedisScript<>();
 
