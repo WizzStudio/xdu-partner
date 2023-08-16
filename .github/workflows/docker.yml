@@ -50,8 +50,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           # file: "./game/Dockerfile"
 
-      # - name: Notify Wizz Op
-      #   run: |
-      #     curl -X POST -H 'Content-Type: application/json' https://wizz-op.be.wizzstudio.com:30000/api/execute -d '{"username": "jiangminuo","password": "'"$OP_PASSWORD"'","script": "update-draw"}'
-      #   env:
-      #     OP_PASSWORD: ${{ secrets.OP_PASSWORD }}
+      - name: Notify Wizz Op
+        run: |
+          curl -X POST -H 'Content-Type: application/json' https://wizz-op.be.wizzstudio.com:30000/api/execute -d '{"username": "qizhenxin","password": "'"$OP_PASSWORD"'","script": "update-xdu-partner"}'
+        env:
+          OP_PASSWORD: ${{ secrets.OP_PASSWORD }}
