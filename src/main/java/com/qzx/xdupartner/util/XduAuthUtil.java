@@ -1,0 +1,179 @@
+package com.qzx.xdupartner.util;
+
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.img.Img;
+import cn.hutool.core.img.ImgUtil;
+import cn.hutool.http.HttpResponse;
+import cn.hutool.http.HttpUtil;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
+import com.qzx.xdupartner.constant.RedisConstant;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
+import java.awt.image.BufferedImage;
+import java.net.HttpCookie;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * 第一次get请求authTarget获取hidden信息，
+ * 第二次get请求captcha查看是否需要验证码，携带username和'_"时间
+ * 若需要验证码，get请求getCaptchaUrl，携带时间:'',cookie
+ * 第三次post请求携带hidden和cookie和验证码进行登录（允许重定向）
+ * 第四次get请求ifLogin携带cookie获取json中的ifLogin字段判断是否成功登录（禁止重定向）
+ */
+@Component
+public class XduAuthUtil {
+    private static final String authTarget = "http://ids.xidian.edu.cn/authserver/login?service=http://ehall.xidian" +
+            ".edu.cn/login?service=http://ehall.xidian.edu.cn/new/index.html";
+    private static final String getCaptchaUrl = "http://ids.xidian.edu.cn/authserver/getCaptcha.htl";
+    private static final String captcha = "https://ids.xidian.edu.cn/authserver/checkNeedCaptcha.htl";
+    private static final String ifLogin = "http://ehall.xidian.edu.cn/jsonp/userFavoriteApps.json";
+    private static final Map<String, Object> firstRequestMap = new HashMap<String, Object>(1) {{
+        put("type", "userNameLogin");
+    }};
+    private static final Map<String, Set<HttpCookie>> cookieMap = new ConcurrentHashMap<>();
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
+
+    /**
+     * 0 登录失败
+     * 1 登录成功
+     * 2 需要验证码
+     *
+     * @param username
+     * @param password
+     * @return
+     */
+    public Integer login(String username, String password) throws Exception {
+        HttpResponse response1 =
+                HttpUtil.createGet(authTarget).setFollowRedirects(true).form(firstRequestMap).keepAlive(true).execute();
+        Set<HttpCookie> cookies = new HashSet<>(response1.getCookies());
+        String key = RedisConstant.NEED_CAPTCHA_USER + username;
+        Map<String, Object> param = explainResponse(response1);
+        if (checkIfNeedCaptcha(username, cookies)) {
+            Img captchaImage = getCaptcha(username, cookies);
+            cookieMap.put(key, cookies);
+            stringRedisTemplate.opsForHash().putAll(key, new HashMap<String,
+                    Object>(param) {{
+                put("img", ImgUtil.toBase64(captchaImage.getImg(), "jpg"));
+            }});
+            stringRedisTemplate.expire(key, 5, TimeUnit.MINUTES);
+            return 2;
+        }
+        param.put("password", XduAesUtil.encrypt(password, String.valueOf(param.get("salt"))));
+        param.putAll(new HashMap<String, Object>() {
+            {
+                put("username", username);
+                put("rememberMe", "true");
+            }
+        });
+        HttpResponse response2 =
+                HttpUtil.createPost(authTarget).setFollowRedirects(true).setMaxRedirectCount(4).cookie(cookies).form(param).execute();
+        cookies.addAll(response2.getCookies());
+        Boolean isLoggedIn = checkIfLogin(cookies);
+        if (isLoggedIn) {
+            return 1;
+        }
+        return 0;
+    }
+
+
+    public Img getCaptchaImg(String username) {
+        String base64Img = (String) stringRedisTemplate.opsForHash().get(RedisConstant.NEED_CAPTCHA_USER + username,
+                "img");
+//        System.out.println(base64Img);
+        BufferedImage bufferedImage = ImgUtil.toImage(base64Img);
+        return new Img(bufferedImage);
+    }
+
+    public Integer loginWithCaptcha(String username, String password, String vcode) throws Exception {
+        String key = RedisConstant.NEED_CAPTCHA_USER + username;
+        Set<HttpCookie> cookieInCache = cookieMap.get(key);
+//        jsonArray.stream().forEach(j -> cookieInRedis.add(BeanUtil.toBean(j, HttpCookie.class)));
+        Map<Object, Object> param =
+                stringRedisTemplate.opsForHash().entries(key);
+        param.put("password", XduAesUtil.encrypt(password, String.valueOf(param.get("salt"))));
+        param.putAll(new HashMap<String, Object>() {
+            {
+                put("captcha", vcode);
+                put("username", username);
+                put("rememberMe", "true");
+            }
+        });
+        param.remove("img");
+        param.remove("salt");
+        HttpResponse response =
+                HttpUtil.createPost(authTarget).setFollowRedirects(true).setMaxRedirectCount(4).cookie(cookieInCache)
+                        .form(BeanUtil.beanToMap(param)).execute();
+        cookieInCache.addAll(response.getCookies());
+        Boolean isLoggedIn = checkIfLogin(cookieInCache);
+        if (isLoggedIn) {
+            cookieMap.remove(key);
+            stringRedisTemplate.delete(key);
+            return 1;
+        }
+        Set<HttpCookie> cookies = cookieMap.get(username);
+        if (checkIfNeedCaptcha(username, cookies)) {
+            Img captchaImage = getCaptcha(username, cookies);
+            cookieMap.put(key, cookies);
+            stringRedisTemplate.opsForHash().put(key,
+                    "img", ImgUtil.toBase64(captchaImage.getImg(), "jpg")
+            );
+            stringRedisTemplate.expire(key, 5, TimeUnit.MINUTES);
+            return 2;
+        }
+        return 0;
+    }
+
+
+    private Boolean checkIfLogin(Set<HttpCookie> cookies) {
+        String body =
+                HttpUtil.createGet(ifLogin).setFollowRedirects(false).setMaxRedirectCount(0).cookie(cookies).execute().body();
+        return JSONUtil.parseObj(body).get("hasLogin").toString().equalsIgnoreCase("true");
+    }
+
+    private Img getCaptcha(String username, Set<HttpCookie> cookies) {
+        HttpResponse response =
+                HttpUtil.createGet(getCaptchaUrl).setFollowRedirects(true).form(new HashMap<String, Object>() {{
+                    put(String.valueOf(System.currentTimeMillis()), "");
+                }}).keepAlive(true).execute();
+        cookies.addAll(response.getCookies());
+        return Img.from(response.bodyStream());
+    }
+
+    private Boolean checkIfNeedCaptcha(String username, Set<HttpCookie> cookies) {
+        HttpResponse response =
+                HttpUtil.createGet(captcha).setFollowRedirects(true).form(new HashMap<String, Object>() {{
+                    put("username", username);
+                    put("_", System.currentTimeMillis());
+                }}).cookie(cookies).keepAlive(true).execute();
+        cookies.addAll(response.getCookies());
+        String isNeed = String.valueOf(JSONUtil.parseObj(response.body()).get("isNeed"));
+        return isNeed.equalsIgnoreCase("true");
+    }
+
+    private Map<String, Object> explainResponse(HttpResponse response) throws Exception {
+        String page = response.body();
+        Document document = Jsoup.parse(page);
+        Element form = document.getElementById("pwdFromId");
+        String salt = form.getElementById("pwdEncryptSalt").attr("value");
+        Elements hiddens = form.select("input[type='hidden']");
+        JSONObject body = new JSONObject();
+        hiddens.forEach(e -> body.putIfAbsent(e.attr("name"), e.attr("value")));
+        body.put("salt", salt);
+        return body;
+    }
+
+
+}

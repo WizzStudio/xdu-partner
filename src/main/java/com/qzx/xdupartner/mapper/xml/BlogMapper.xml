@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qzx.xdupartner.mapper.BlogMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.qzx.xdupartner.entity.Blog">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="is_anonymous" property="isAnonymous"/>
+        <result column="title" property="title"/>
+        <result column="contact" property="contact"/>
+        <result column="high_tag_id" property="highTagId"/>
+        <result column="low_tags" property="lowTags"/>
+        <result column="when_meet" property="whenMeet"/>
+        <result column="location" property="location"/>
+        <result column="absent" property="absent"/>
+        <result column="view_times" property="viewTimes"/>
+        <result column="images" property="images"/>
+        <result column="content" property="content"/>
+        <result column="liked" property="liked"/>
+        <result column="is_complete" property="isComplete"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, user_id, is_anonymous, title, contact, high_tag_id, low_tags, when_meet, location, absent, view_times,
+        images, content, liked, is_complete, create_time, update_time
+    </sql>
+
+</mapper>

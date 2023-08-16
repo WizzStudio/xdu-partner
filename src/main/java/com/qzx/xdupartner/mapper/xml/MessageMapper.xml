@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qzx.xdupartner.mapper.MessageMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.qzx.xdupartner.entity.Message">
+        <id column="id" property="id"/>
+        <result column="content" property="content"/>
+        <result column="from_id" property="fromId"/>
+        <result column="to_id" property="toId"/>
+        <result column="type" property="type"/>
+        <result column="is_received" property="isReceived"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, content, from_id, to_id, type, is_received, create_time
+    </sql>
+
+</mapper>
