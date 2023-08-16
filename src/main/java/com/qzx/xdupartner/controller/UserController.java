@@ -118,9 +118,9 @@ public class UserController {
     }
 
     @PostMapping(value = "/login", produces = "application/json;charset=utf-8")
-    public Map<String, Object> login(@NotNull(message = "学号不能为空") @RequestParam String stuId,
-                                     @NotNull(message = "密码不能为空") @RequestParam String password,
-                                     @RequestParam String vcode) {
+    public Map<String, Object> login(@NotNull(message = "学号不能为空") @RequestParam("stuId") String stuId,
+                                     @NotNull(message = "密码不能为空") @RequestParam("password") String password,
+                                     @RequestParam("vcode") String vcode) {
         Integer login = null;
         try {
             if (StrUtil.isNotBlank(vcode)) {

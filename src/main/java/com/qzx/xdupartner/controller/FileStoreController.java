@@ -3,6 +3,7 @@ package com.qzx.xdupartner.controller;
 
 import cn.hutool.core.io.FileUtil;
 import com.qzx.xdupartner.entity.FileStore;
+import com.qzx.xdupartner.schedule.ScheduleMission;
 import com.qzx.xdupartner.service.FileStoreService;
 import com.qzx.xdupartner.util.AesUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +37,8 @@ import java.util.Map;
 public class FileStoreController {
     @Resource
     private FileStoreService fileStoreService;
+    @Resource
+    private ScheduleMission scheduleMission;
 
     @Value("${file.local-path}")
     private String path;
@@ -66,6 +69,7 @@ public class FileStoreController {
     @PostMapping(value = "/insertDict", produces = "application/json;charset=utf-8")
     public void insertDict(@Validated @NotBlank(message = "词语不能为空") @RequestParam String keyword) {
         FileUtil.appendString(keyword + " 1 n\n", dictPath, StandardCharsets.UTF_8);
+        scheduleMission.update();
     }
 
 }

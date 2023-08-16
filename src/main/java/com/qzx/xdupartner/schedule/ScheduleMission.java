@@ -1,5 +1,6 @@
 package com.qzx.xdupartner.schedule;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.huaban.analysis.jieba.JiebaSegmenter;
@@ -113,13 +114,13 @@ public class ScheduleMission {
         try {
             for (int i = 1; i <= 4; i++) {
                 String redisKey = RedisConstant.LOW_TAG_FREQUENCY + i;
-                List<String> lowerThanOne = new ArrayList<>(50);
                 Map<Object, Object> entries = stringRedisTemplate.opsForHash().entries(redisKey);
                 if (entries.isEmpty()) continue;
                 List<String> keyList =
                         entries.entrySet().stream().filter(entry -> Integer.parseInt(
                                 (String) entry.getValue()) <= 1).map(entry -> String.valueOf(entry.getKey())).collect(Collectors.toList());
-                stringRedisTemplate.opsForHash().delete(redisKey, keyList);
+                Object[] fields = keyList.toArray();
+                stringRedisTemplate.opsForHash().delete(redisKey, fields);
                 log.info("移除了：" + keyList);
             }
             long end = System.currentTimeMillis();
