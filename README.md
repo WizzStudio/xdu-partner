@@ -1,7 +1,3 @@
-# xdu-partner
+# xdu-partner-be
+西电搭子
 
-## local build
-
-```sh
-docker build -t registry.cn-chengdu.aliyuncs.com/wizz-project/xdu-partner .
-```
