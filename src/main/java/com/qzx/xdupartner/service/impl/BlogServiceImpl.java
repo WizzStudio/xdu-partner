@@ -18,7 +18,6 @@ import com.qzx.xdupartner.entity.vo.UserVo;
 import com.qzx.xdupartner.exception.ApiException;
 import com.qzx.xdupartner.mapper.BlogMapper;
 import com.qzx.xdupartner.service.BlogService;
-import com.qzx.xdupartner.service.FileStoreService;
 import com.qzx.xdupartner.service.UserService;
 import com.qzx.xdupartner.util.UserHolder;
 import lombok.extern.slf4j.Slf4j;
@@ -52,8 +51,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     private BlogMapper blogMapper;
     @Resource
     private UserService userService;
-    @Resource
-    private FileStoreService fileStoreService;
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
@@ -96,19 +93,13 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
             blogVo.setUserVo(userService.getUserVoById(blog.getUserId()));
         } else {
             UserVo anonymousVo = UserVo.getAnonymousVo();
-            blogVo.setUserVo(anonymousVo);
-            blogVo.getUserVo().setIcon(fileStoreService.getById(anonymousVo.getIcon()).getFileUri());
+            blogVo.setUserVo(anonymousVo);;
         }
         //image
         String imageStr = blog.getImages();
         if (StrUtil.isNotBlank(imageStr)) {
             List<String> imageUris =
                     Arrays.stream(imageStr.split(SystemConstant.PICTURE_CONJUNCTION)).collect(Collectors.toList());
-//            List<Long> imageIdList =
-//                    Arrays.stream(imageStr.split(SystemConstant.PICTURE_CONJUNCTION)).map(Long::valueOf).collect
-//                    (Collectors.toList());
-//            List<FileStore> images = fileStoreService.listByIds(imageIdList);
-//            List<String> imageUris = images.stream().map(FileStore::getFileUri).collect(Collectors.toList());
             blogVo.setImages(imageUris);
         }
         //lowTag
@@ -116,9 +107,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
                 Arrays.stream(blog.getLowTags().split(SystemConstant.LOW_TAG_CONJUNCTION)).collect(Collectors.toList());
         blogVo.setLowTags(lowTagList);
         blogVo.setHighTag(blog.getHighTagId());
-        //isLiked
         boolean isLiked = blogIsLiked(blog.getId());
-//        log.warn(blog.getId()+" isLiked:"+isLiked);
         blogVo.setIsLiked(isLiked);
         return blogVo;
     }

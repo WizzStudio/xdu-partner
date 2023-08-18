@@ -3,19 +3,17 @@ package com.qzx.xdupartner.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.qzx.xdupartner.constant.RedisConstant;
 import com.qzx.xdupartner.constant.SystemConstant;
-import com.qzx.xdupartner.entity.FileStore;
 import com.qzx.xdupartner.entity.User;
 import com.qzx.xdupartner.entity.vo.BlogVo;
 import com.qzx.xdupartner.entity.vo.UserInfoVo;
 import com.qzx.xdupartner.exception.ApiException;
 import com.qzx.xdupartner.service.BlogService;
-import com.qzx.xdupartner.service.FileStoreService;
 import com.qzx.xdupartner.service.UserService;
-import com.qzx.xdupartner.util.AesUtil;
 import com.qzx.xdupartner.util.JwtUtil;
 import com.qzx.xdupartner.util.UserHolder;
 import com.qzx.xdupartner.util.XduAuthUtil;
@@ -30,7 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -47,8 +44,6 @@ public class UserController {
     private UserService userService;
 
     @Resource
-    private FileStoreService fileStoreService;
-    @Resource
     private BlogService blogService;
     @Resource
     private XduAuthUtil xduAuthUtil;
@@ -58,21 +53,22 @@ public class UserController {
     private User transferToUser(UserInfoVo userInfoVo) {
         User user = BeanUtil.copyProperties(userInfoVo, User.class);
         user.setId(UserHolder.getUserId());
-        String icon = userInfoVo.getIcon();
-        if (StrUtil.isNotBlank(icon))
-            user.setIcon(AesUtil.decryptHex(icon));
+//        String icon = userInfoVo.getIcon();
+//        if (StrUtil.isNotBlank(icon))
+//            user.setIcon(AesUtil.decryptHex(icon));
+        user.setIcon(userInfoVo.getIcon());
         List<String> picture = userInfoVo.getPicture();
         if (picture != null && !picture.isEmpty()) {
             if (picture.size() > 3) {
                 throw new ApiException("照片墙照片最多为3张");
             }
-            List<String> collect = null;
-            try {
-                collect = picture.stream().map(AesUtil::decryptHex).collect(Collectors.toList());
-            } catch (Exception e) {
-                throw new ApiException("照片墙字串有误");
-            }
-            String picStr = StrUtil.join(SystemConstant.PICTURE_CONJUNCTION, collect);
+//            List<String> collect = null;
+//            try {
+//                collect = picture.stream().map(AesUtil::decryptHex).collect(Collectors.toList());
+//            } catch (Exception e) {
+//                throw new ApiException("照片墙字串有误");
+//            }
+            String picStr = StrUtil.join(SystemConstant.PICTURE_CONJUNCTION, picture);
             if (StrUtil.isBlank(picStr)) {
                 picStr = null;
             }
@@ -84,20 +80,22 @@ public class UserController {
     }
 
     private UserInfoVo getUserInfoVo(User user) {
-        FileStore icon = fileStoreService.getById(user.getIcon());
-        if (icon == null) {
-            user.setIcon(fileStoreService.getById(1L).getFileUri());
-        } else {
-            user.setIcon(icon.getFileUri());
+//        FileStore icon = fileStoreService.getById(user.getIcon());
+//        if (icon == null) {
+//            user.setIcon(fileStoreService.getById(1L).getFileUri());
+//        } else {
+//            user.setIcon(icon.getFileUri());
+//        }
+        if (user.getIcon() == null || StrUtil.isBlank(user.getIcon())) {
+            user.setIcon(
+                    SystemConstant.DEFAULT_ICON_URL + RandomUtil.randomInt(SystemConstant.RANDOM_ICON_MIN,
+                            SystemConstant.RANDOM_ICON_MAX) +
+                            ".jpg");
         }
         String picture = user.getPicture();
         List<String> collect = null;
         if (StrUtil.isNotBlank(picture)) {
-            collect = Arrays.stream(picture.split(SystemConstant.PICTURE_CONJUNCTION)).map(id -> {
-                Long id1 = Long.valueOf(id);
-                FileStore byId = fileStoreService.getById(id1);
-                return byId.getFileUri();
-            }).collect(Collectors.toList());
+            collect = Arrays.asList(picture.split(SystemConstant.PICTURE_CONJUNCTION));
         }
         UserInfoVo userInfoVo = BeanUtil.toBean(user, UserInfoVo.class);
         userInfoVo.setPicture(collect);

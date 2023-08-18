@@ -1,29 +1,19 @@
 package com.qzx.xdupartner.constant;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-
-import javax.annotation.PostConstruct;
 
 @Configuration
 public class SystemConstant {
     public static final int RANDOM_TTL_MIN = 300;
     public static final int RANDOM_TTL_MAX = 360;
-    @Value("${urlPrefix}")
-    public String urlPrefix;
-
-    @PostConstruct
-    private void init() {
-        URL_PREFIX = urlPrefix;
-    }
+    public static final String DEFAULT_ICON_URL = "https://xdu-partner.oss-cn-hangzhou.aliyuncs.com/default_icon/";
 
     public static final int RANDOM_ICON_MIN = 1;
-    public static final int RANDOM_ICON_MAX = 6;
+    public static final int RANDOM_ICON_MAX = 7;
     public static String URL_PREFIX;
     public static final long MB = 1024 * 1024;
     public static final int MAX_PAGE_SIZE = 10;
     public static final int LIKE_PAGE_SIZE = 6;
-    public static final String ANONYMOUS_ICON = "upload/image/defaultIcon.png";
     public static final String LOW_TAG_CONJUNCTION = "_lowTag_";
     public static final String PICTURE_CONJUNCTION = ",";
 
