@@ -90,7 +90,7 @@ public class UserController {
             user.setIcon(
                     SystemConstant.DEFAULT_ICON_URL + RandomUtil.randomInt(SystemConstant.RANDOM_ICON_MIN,
                             SystemConstant.RANDOM_ICON_MAX) +
-                            ".jpg");
+                            ".png");
         }
         String picture = user.getPicture();
         List<String> collect = null;
