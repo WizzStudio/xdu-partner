@@ -53,7 +53,7 @@ public class FileStoreController {
         String host = "https://" + bucket + "." + endpoint;
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         String date = dateFormat.format(new Date());
-        String dir = "xdu-partner/" + date + "/";
+        String dir = "upload/" + date + "/";
         // 创建ossClient实例。
         OSS ossClient = new OSSClientBuilder().build(endpoint, accessId, accessKey);
         try {
