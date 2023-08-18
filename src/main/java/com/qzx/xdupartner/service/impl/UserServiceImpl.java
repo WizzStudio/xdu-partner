@@ -10,7 +10,6 @@ import com.qzx.xdupartner.entity.User;
 import com.qzx.xdupartner.entity.vo.UserVo;
 import com.qzx.xdupartner.exception.ApiException;
 import com.qzx.xdupartner.mapper.UserMapper;
-import com.qzx.xdupartner.service.FileStoreService;
 import com.qzx.xdupartner.service.UserService;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -30,8 +29,6 @@ import java.util.concurrent.TimeUnit;
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
     @Resource
     private StringRedisTemplate stringRedisTemplate;
-    @Resource
-    private FileStoreService fileStoreService;
 
     @Override
     public UserVo getUserVoById(Long userId) {
@@ -48,7 +45,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         UserVo userVo = new UserVo();
         userVo.setId(byId.getId());
         userVo.setNickName(byId.getNickName());
-        userVo.setIcon(fileStoreService.getById(byId.getIcon()).getFileUri());
+        userVo.setIcon(byId.getIcon());
         stringRedisTemplate.opsForValue().set(RedisConstant.USERVO_CACHE + userId, JSONUtil.toJsonStr(userVo),
                 RedisConstant.CACHE_TTL,
                 TimeUnit.MINUTES);
@@ -62,8 +59,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setMyDescription("写几句话来描述一下自己吧~");
         user.setStuId(stuId);
         //TODO 放入常量池，上传数据库图片，匿名的头像
-        user.setIcon(String.valueOf(RandomUtil.randomInt(SystemConstant.RANDOM_ICON_MIN,
-                SystemConstant.RANDOM_ICON_MAX)));
+        user.setIcon(SystemConstant.DEFAULT_ICON_URL + RandomUtil.randomInt(SystemConstant.RANDOM_ICON_MIN,
+                SystemConstant.RANDOM_ICON_MAX) +
+                ".jpg");
         user.setNickName(SystemConstant.DEFAULT_NICKNAME +
                 stringRedisTemplate.opsForValue().increment(RedisConstant.DEFAULT_NICKNAME_INCREMENT));
         save(user);

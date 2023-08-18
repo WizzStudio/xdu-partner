@@ -10,14 +10,9 @@ spring:
     username:
     password:
     driver-class-name: com.mysql.cj.jdbc.Driver
-  servlet:
-    multipart:
-      max-request-size: 40MB
-      max-file-size: 15MB
-  #设定静态文件路径，js,css等
   web:
     resources:
-      static-locations: classpath:/templates/,classpath:/static/upload/
+      static-locations: classpath:/templates/
 jwt_key: (6个字母)
 netty:
   port: 8081
@@ -30,12 +25,6 @@ mybatis-plus:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
     # 测试环境文件存储路径
-uploadFile:
-  # 文件大小 /M
-  maxSize: 10
-file:
-  request-path: /upload/**
-  local-path: /data/static/upload/
-  dict-path:  /data/static/dict.txt
-urlPrefix: https://服务器域名/wz/
-
+accessId:
+accessKey:
+bucket:

@@ -23,8 +23,9 @@ public class UserVo {
     public static UserVo getAnonymousVo() {
         UserVo userVo = new UserVo();
         userVo.setId(0L);
-        userVo.setIcon(String.valueOf(RandomUtil.randomInt(SystemConstant.RANDOM_ICON_MIN,
-                SystemConstant.RANDOM_ICON_MAX)));
+        userVo.setIcon(SystemConstant.DEFAULT_ICON_URL + RandomUtil.randomInt(SystemConstant.RANDOM_ICON_MIN,
+                SystemConstant.RANDOM_ICON_MAX) +
+                ".jpg");
         userVo.setNickName("匿名用户");
         return userVo;
     }

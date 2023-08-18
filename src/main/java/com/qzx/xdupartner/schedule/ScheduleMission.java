@@ -1,6 +1,6 @@
 package com.qzx.xdupartner.schedule;
 
-import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.huaban.analysis.jieba.JiebaSegmenter;
@@ -12,7 +12,6 @@ import com.qzx.xdupartner.entity.ScheduleLog;
 import com.qzx.xdupartner.mapper.BlogMapper;
 import com.qzx.xdupartner.mapper.ScheduleLogMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -38,8 +37,6 @@ public class ScheduleMission {
     private BlogMapper blogMapper;
     @Resource
     private StringRedisTemplate stringRedisTemplate;
-    @Value("${file.dict-path}")
-    private String dictPath;
 
     @PostConstruct
     public void init() throws IOException {
@@ -144,7 +141,9 @@ public class ScheduleMission {
 //    @Scheduled(cron = "0/5 0/1 * * * ?")
     @Transactional(rollbackFor = Exception.class)
     public void update() {
-        File dictWords = new File(dictPath);
+        String dictString = stringRedisTemplate.opsForValue().get(RedisConstant.DICT_KEY);
+        File dictWords = FileUtil.newFile("/data/tmp.txt");
+        FileUtil.writeUtf8String(""+dictString, dictWords);
         WordDictionary.getInstance().loadUserDict(dictWords.toPath(), StandardCharsets.UTF_8);
         JiebaSegmenter segmenter = new JiebaSegmenter();
         log.info("开始执行lowTag分析");
@@ -153,9 +152,7 @@ public class ScheduleMission {
         scheduleLog.setName("lowTag分析");
         scheduleLog.setType(3);
         try {
-            QueryWrapper<Blog> queryWrapper = new QueryWrapper<Blog>();
             for (int i = 1; i <= 4; i++) {
-//                List<Blog> blogs = blogMapper.selectList(queryWrapper.eq("high_tag_id", i));
                 Map<String, Object> map = new HashMap<>();
                 map.put("high_tag_id", i);
                 List<Blog> blogs = blogMapper.selectByMap(map);
@@ -192,6 +189,7 @@ public class ScheduleMission {
             scheduleLog.setTime((int) (end - start));
         } finally {
             scheduleLogMapper.insert(scheduleLog);
+            dictWords.delete();
         }
     }
 }
