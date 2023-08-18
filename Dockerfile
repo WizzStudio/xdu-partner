@@ -14,5 +14,5 @@ EXPOSE 8081
 CMD mkdir /data/static/upload/
 COPY src/main/resources/image /data/static/upload/image
 COPY src/main/resources/dict.txt /data/static/dict.txt
-COPY --from=MAVEN_BUILD /build/target/xdu-partner-0.0.2-SNAPSHOT.jar /root/xdu-partner.jar
+COPY --from=MAVEN_BUILD /build/target/xdu-partner-0.0.1-SNAPSHOT.jar /root/xdu-partner.jar
 ENTRYPOINT ["java","-jar", "xdu-partner.jar"]
