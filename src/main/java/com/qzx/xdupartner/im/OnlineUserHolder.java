@@ -1,15 +1,16 @@
 package com.qzx.xdupartner.im;
 
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.json.JSONUtil;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import com.qzx.xdupartner.entity.RspMessage;
 import com.qzx.xdupartner.util.UserHolder;
+
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class OnlineUserHolder {

@@ -15,7 +15,8 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, content, from_id, to_id, type, is_received, create_time
+        id
+        , content, from_id, to_id, type, is_received, create_time
     </sql>
 
 </mapper>

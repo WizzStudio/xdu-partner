@@ -19,8 +19,9 @@ public enum HighTag {
     }
 
     public static HighTag match(int code) {
-        if (code == 1) return STUDY;
-        else if (code == 2) {
+        if (code == 1) {
+            return STUDY;
+        } else if (code == 2) {
             return FUN;
         } else if (code == 3) {
             return LOVE;

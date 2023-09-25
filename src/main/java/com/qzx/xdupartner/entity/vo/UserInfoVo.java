@@ -1,11 +1,12 @@
 package com.qzx.xdupartner.entity.vo;
 
-import lombok.Data;
+import java.util.List;
 
 import javax.validation.constraints.DecimalMax;
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Size;
-import java.util.List;
+
+import lombok.Data;
 
 @Data
 public class UserInfoVo {

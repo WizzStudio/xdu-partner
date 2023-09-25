@@ -14,7 +14,8 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, user_id, friend_id, view_range, view_qq, alter_name
+        id
+        , user_id, friend_id, view_range, view_qq, alter_name
     </sql>
 
 </mapper>

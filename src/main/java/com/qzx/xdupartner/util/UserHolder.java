@@ -1,8 +1,8 @@
 package com.qzx.xdupartner.util;
 
-import com.qzx.xdupartner.entity.User;
-
 import java.util.concurrent.atomic.AtomicLong;
+
+import com.qzx.xdupartner.entity.User;
 
 
 public class UserHolder {

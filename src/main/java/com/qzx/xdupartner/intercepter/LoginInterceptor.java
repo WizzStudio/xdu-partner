@@ -1,15 +1,17 @@
 package com.qzx.xdupartner.intercepter;
 
-import cn.hutool.json.JSONUtil;
-import com.qzx.xdupartner.entity.vo.ResultVo;
-import com.qzx.xdupartner.util.UserHolder;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import com.qzx.xdupartner.entity.vo.ResultVo;
+import com.qzx.xdupartner.util.UserHolder;
+
+import cn.hutool.json.JSONUtil;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Setter

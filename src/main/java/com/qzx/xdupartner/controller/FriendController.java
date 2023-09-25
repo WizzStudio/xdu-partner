@@ -1,7 +1,19 @@
 package com.qzx.xdupartner.controller;
 
 
-import cn.hutool.core.util.StrUtil;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.annotation.Resource;
+import javax.validation.constraints.NotNull;
+
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.qzx.xdupartner.entity.Friend;
 import com.qzx.xdupartner.entity.Message;
 import com.qzx.xdupartner.entity.enumeration.MessageType;
@@ -11,13 +23,8 @@ import com.qzx.xdupartner.service.FriendService;
 import com.qzx.xdupartner.service.MessageService;
 import com.qzx.xdupartner.service.UserService;
 import com.qzx.xdupartner.util.UserHolder;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
-import javax.validation.constraints.NotNull;
-import java.util.List;
-import java.util.stream.Collectors;
+import cn.hutool.core.util.StrUtil;
 
 /**
  * <p>
@@ -56,7 +63,9 @@ public class FriendController {
                 friend.setUserId(UserHolder.getUserId());
                 friend.setFriendId(friendId);
                 friendService.save(friend);
-            } else throw new ApiException("你已发送过好友请求");
+            } else {
+                throw new ApiException("你已发送过好友请求");
+            }
         }
         return "发送好友请求成功！";
     }
@@ -99,7 +108,9 @@ public class FriendController {
     @PostMapping(value = "/changeFriendAlterName", produces = "application/json;charset=utf-8")
     public String changeFriendAlterName(@Validated @RequestParam @NotNull Long friendId,
                                         @RequestParam String alterName) {
-        if ("".equals(alterName)) return "备注不能为空";
+        if ("".equals(alterName)) {
+            return "备注不能为空";
+        }
         boolean update = friendService.update().eq("user_id", UserHolder.getUserId()).eq("friend_id", friendId).set(
                 "alter_name", alterName).update();
         return "修改成功";

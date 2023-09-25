@@ -23,7 +23,8 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, nick_name, major_name, stu_id, password, is_admin, qq, icon, picture, my_description, high_tag, mbti,
+        id
+        , nick_name, major_name, stu_id, password, is_admin, qq, icon, picture, my_description, high_tag, mbti,
         constellation, creat_time, update_time
     </sql>
 

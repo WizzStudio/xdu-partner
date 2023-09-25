@@ -1,13 +1,15 @@
 package com.qzx.xdupartner.im.handler;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.springframework.stereotype.Component;
+
 import com.qzx.xdupartner.im.OnlineUserHolder;
+
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Component

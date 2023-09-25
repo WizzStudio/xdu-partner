@@ -1,10 +1,27 @@
 package com.qzx.xdupartner.service.impl;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.RandomUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
+import static com.qzx.xdupartner.constant.RedisConstant.BLOG_READ_KEY;
+import static com.qzx.xdupartner.constant.RedisConstant.USESR_BLOG_LIKED_KEY;
+import static com.qzx.xdupartner.constant.SystemConstant.LIKE_PAGE_SIZE;
+import static com.qzx.xdupartner.constant.SystemConstant.MAX_PAGE_SIZE;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import javax.annotation.Resource;
+
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Service;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -20,20 +37,16 @@ import com.qzx.xdupartner.mapper.BlogMapper;
 import com.qzx.xdupartner.service.BlogService;
 import com.qzx.xdupartner.service.UserService;
 import com.qzx.xdupartner.util.UserHolder;
+
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUnit;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.stereotype.Service;
-
-import javax.annotation.Resource;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import static com.qzx.xdupartner.constant.RedisConstant.USESR_BLOG_LIKED_KEY;
-import static com.qzx.xdupartner.constant.SystemConstant.LIKE_PAGE_SIZE;
-import static com.qzx.xdupartner.constant.SystemConstant.MAX_PAGE_SIZE;
 
 /**
  * <p>
@@ -66,7 +79,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     }
 
     private List<BlogVo> getBlogVos(List<Blog> records, String redisKey) {
-        if (records == null || records.size() == 0) return new ArrayList<>();
+        if (records == null || records.size() == 0) {
+            return new ArrayList<>();
+        }
         Set<String> viewed = stringRedisTemplate.opsForSet().members(redisKey + UserHolder.getUserId());
         String[] idStrings = records.stream().map(blog -> String.valueOf(blog.getId())).toArray(String[]::new);
         stringRedisTemplate.opsForSet().add(redisKey + UserHolder.getUserId(), idStrings);
@@ -79,12 +94,25 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
                 //TODO 分析lowTags
                 BlogVo blogVo = transferToBlogVo(blog);
                 String readKey = RedisConstant.BLOG_READ_KEY + blogVo.getId();
-                blogVo.setViewTimes((int) (blogVo.getViewTimes() + stringRedisTemplate.opsForValue().increment(readKey)));
+                //TODO 浏览量统计优化
+//                blogVo.setViewTimes((int) (blogVo.getViewTimes() + stringRedisTemplate.opsForValue().increment(readKey)));
+                blogVo.setViewTimes(blogVo.getViewTimes() + AddAndGetViewTimes(blogVo.getId(), UserHolder.getUserId()));
                 voRecords.add(blogVo);
-                ;
             }
         });
         return voRecords;
+    }
+
+    private int AddAndGetViewTimes(Long blogId, Long userId) {
+        //5分钟为窗口期
+        //使用HLL, 增加定时任务
+        //key格式 blog:read:{时间除(5*60*1000)值}:{blogId值} key存活时间10min 在这1分钟内进行定时任务
+        //定时任务: 将 上述格式:{blogId}的浏览量落表
+        DateTime nowDate = DateUtil.date();
+        long betweenDayStart = nowDate.between(DateUtil.beginOfDay(nowDate), DateUnit.SECOND);
+        String pattern = ((betweenDayStart / (5 * 60)) + 1) + ":";
+        Long size = stringRedisTemplate.opsForHyperLogLog().add(BLOG_READ_KEY + pattern + blogId, String.valueOf(userId));
+        return size.intValue();
     }
 
     private BlogVo transferToBlogVo(Blog blog) {
@@ -93,7 +121,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
             blogVo.setUserVo(userService.getUserVoById(blog.getUserId()));
         } else {
             UserVo anonymousVo = UserVo.getAnonymousVo();
-            blogVo.setUserVo(anonymousVo);;
+            blogVo.setUserVo(anonymousVo);
+            ;
         }
         //image
         String imageStr = blog.getImages();

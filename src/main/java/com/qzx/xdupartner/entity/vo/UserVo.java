@@ -1,8 +1,9 @@
 package com.qzx.xdupartner.entity.vo;
 
-import cn.hutool.core.util.RandomUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.qzx.xdupartner.constant.SystemConstant;
+
+import cn.hutool.core.util.RandomUtil;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

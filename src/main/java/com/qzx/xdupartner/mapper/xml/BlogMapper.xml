@@ -25,7 +25,8 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, user_id, is_anonymous, title, contact, high_tag_id, low_tags, when_meet, location, absent, view_times,
+        id
+        , user_id, is_anonymous, title, contact, high_tag_id, low_tags, when_meet, location, absent, view_times,
         images, content, liked, is_complete, create_time, update_time
     </sql>
 
