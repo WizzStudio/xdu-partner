@@ -1,7 +1,20 @@
 package com.qzx.xdupartner.service.impl;
 
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Service;
+
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qzx.xdupartner.constant.RedisConstant;
 import com.qzx.xdupartner.entity.Message;
@@ -13,19 +26,9 @@ import com.qzx.xdupartner.service.FriendService;
 import com.qzx.xdupartner.service.MessageService;
 import com.qzx.xdupartner.service.UserService;
 import com.qzx.xdupartner.util.UserHolder;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 
 /**
  * <p>
@@ -100,11 +103,11 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
                     MessageVo messageVo = new MessageVo();
                     Message message1 = JSONUtil.toBean(jsonStr1, Message.class);
                     Message message2 = JSONUtil.toBean(jsonStr2, Message.class);
-                    if (StrUtil.isBlank(jsonStr1))
+                    if (StrUtil.isBlank(jsonStr1)) {
                         messageVo.setMessages(Collections.singletonList(transferToRspMessage(message2)));
-                    else if (StrUtil.isBlank(jsonStr2))
+                    } else if (StrUtil.isBlank(jsonStr2)) {
                         messageVo.setMessages(Collections.singletonList(transferToRspMessage(message1)));
-                    else if (message1.getId() > message2.getId()) {
+                    } else if (message1.getId() > message2.getId()) {
                         messageVo.setMessages(Collections.singletonList(transferToRspMessage(message1)));
                     } else {
                         messageVo.setMessages(Collections.singletonList(transferToRspMessage(message2)));

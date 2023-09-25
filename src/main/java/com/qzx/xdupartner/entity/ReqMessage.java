@@ -1,13 +1,15 @@
 package com.qzx.xdupartner.entity;
 
-import cn.hutool.json.JSONUtil;
-import com.qzx.xdupartner.constant.SystemConstant;
-import com.qzx.xdupartner.util.JwtUtil;
-import lombok.Data;
-
-import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+
+import javax.validation.constraints.Size;
+
+import com.qzx.xdupartner.constant.SystemConstant;
+import com.qzx.xdupartner.util.JwtUtil;
+
+import cn.hutool.json.JSONUtil;
+import lombok.Data;
 
 @Data
 public class ReqMessage implements Serializable {

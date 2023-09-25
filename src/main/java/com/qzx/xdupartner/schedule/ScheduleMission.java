@@ -1,8 +1,28 @@
 package com.qzx.xdupartner.schedule;
 
-import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.util.ObjectUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import static com.qzx.xdupartner.constant.RedisConstant.BLOG_READ_KEY;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.huaban.analysis.jieba.JiebaSegmenter;
 import com.huaban.analysis.jieba.WordDictionary;
 import com.qzx.xdupartner.constant.RedisConstant;
@@ -11,21 +31,13 @@ import com.qzx.xdupartner.entity.Blog;
 import com.qzx.xdupartner.entity.ScheduleLog;
 import com.qzx.xdupartner.mapper.BlogMapper;
 import com.qzx.xdupartner.mapper.ScheduleLogMapper;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUnit;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.ObjectUtil;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
@@ -112,7 +124,9 @@ public class ScheduleMission {
             for (int i = 1; i <= 4; i++) {
                 String redisKey = RedisConstant.LOW_TAG_FREQUENCY + i;
                 Map<Object, Object> entries = stringRedisTemplate.opsForHash().entries(redisKey);
-                if (entries.isEmpty()) continue;
+                if (entries.isEmpty()) {
+                    continue;
+                }
                 List<String> keyList =
                         entries.entrySet().stream().filter(entry -> Integer.parseInt(
                                 (String) entry.getValue()) <= 1).map(entry -> String.valueOf(entry.getKey())).collect(Collectors.toList());
@@ -143,7 +157,7 @@ public class ScheduleMission {
     public void update() {
         String dictString = stringRedisTemplate.opsForValue().get(RedisConstant.DICT_KEY);
         File dictWords = FileUtil.newFile("/data/tmp.txt");
-        FileUtil.writeUtf8String(""+dictString, dictWords);
+        FileUtil.writeUtf8String("" + dictString, dictWords);
         WordDictionary.getInstance().loadUserDict(dictWords.toPath(), StandardCharsets.UTF_8);
         JiebaSegmenter segmenter = new JiebaSegmenter();
         log.info("开始执行lowTag分析");
@@ -191,5 +205,31 @@ public class ScheduleMission {
             scheduleLogMapper.insert(scheduleLog);
             dictWords.delete();
         }
+    }
+
+    //    @Scheduled(cron = "0 0 5 * * ?")
+    @Scheduled(cron = "*/5 * * * *")
+    @Transactional(rollbackFor = Exception.class)
+    public void putViewTimeInToDb() {
+        DateTime nowDate = DateUtil.date();
+        long betweenDayStart = nowDate.between(DateUtil.beginOfDay(nowDate), DateUnit.SECOND);
+        String pattern = ((betweenDayStart / (5 * 60)) - 1) + ":*";
+        Set<String> keys = stringRedisTemplate.keys(BLOG_READ_KEY + pattern);
+        if (keys == null) {
+            return;
+        }
+        keys.stream().parallel().forEach(each -> {
+            Long size = stringRedisTemplate.opsForHyperLogLog().size(each);
+            // 将key拆分
+            String split = each.substring(each.lastIndexOf(':') + 1);
+            // 根据blogId获取
+            Blog blog = blogMapper.selectById(split);
+            if (blog == null) {
+                return;
+            }
+            blog.setViewTimes(blog.getViewTimes() + size.intValue());
+            blogMapper.updateById(blog);
+            stringRedisTemplate.delete(each);
+        });
     }
 }

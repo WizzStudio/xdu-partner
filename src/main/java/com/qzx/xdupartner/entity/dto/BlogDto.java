@@ -1,9 +1,14 @@
 package com.qzx.xdupartner.entity.dto;
 
-import lombok.Data;
-
-import javax.validation.constraints.*;
 import java.util.List;
+
+import javax.validation.constraints.DecimalMax;
+import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
+import lombok.Data;
 
 @Data
 public class BlogDto {

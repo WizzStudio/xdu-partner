@@ -1,15 +1,17 @@
 package com.qzx.xdupartner.config;
 
 
-import com.qzx.xdupartner.intercepter.LoginInterceptor;
-import com.qzx.xdupartner.intercepter.TokenInterceptor;
-import lombok.extern.slf4j.Slf4j;
+import javax.annotation.Resource;
+
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import javax.annotation.Resource;
+import com.qzx.xdupartner.intercepter.LoginInterceptor;
+import com.qzx.xdupartner.intercepter.TokenInterceptor;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <a href="https://blog.csdn.net/jerry11112/article/details/108352526">...</a>

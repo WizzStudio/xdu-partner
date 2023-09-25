@@ -11,7 +11,8 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, title, description
+        id
+        , title, description
     </sql>
 
 </mapper>
