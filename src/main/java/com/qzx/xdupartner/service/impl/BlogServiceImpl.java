@@ -59,7 +59,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements BlogService {
-    private static final ExecutorService executor = Executors.newFixedThreadPool(10);
+    private static final ExecutorService executor = Executors.newCachedThreadPool();
     @Resource
     private BlogMapper blogMapper;
     @Resource
@@ -89,6 +89,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
                 TimeUnit.SECONDS);
         List<BlogVo> voRecords = new ArrayList<>(MAX_PAGE_SIZE);
         records.forEach(blog -> {
+            executor.submit(()->{
+                AddViewTimes(blog.getId(), UserHolder.getUserId());
+            });
             //当显示过的时候跳过
             if (viewed == null || !viewed.contains(String.valueOf(blog.getId()))) {
                 //TODO 分析lowTags
@@ -96,14 +99,14 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
                 String readKey = RedisConstant.BLOG_READ_KEY + blogVo.getId();
                 //TODO 浏览量统计优化
 //                blogVo.setViewTimes((int) (blogVo.getViewTimes() + stringRedisTemplate.opsForValue().increment(readKey)));
-                blogVo.setViewTimes(blogVo.getViewTimes() + AddAndGetViewTimes(blogVo.getId(), UserHolder.getUserId()));
+                blogVo.setViewTimes(blogVo.getViewTimes());
                 voRecords.add(blogVo);
             }
         });
         return voRecords;
     }
 
-    private int AddAndGetViewTimes(Long blogId, Long userId) {
+    private void AddViewTimes(Long blogId, Long userId) {
         //5分钟为窗口期
         //使用HLL, 增加定时任务
         //key格式 blog:read:{时间除(5*60*1000)值}:{blogId值} key存活时间10min 在这1分钟内进行定时任务
@@ -111,8 +114,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         DateTime nowDate = DateUtil.date();
         long betweenDayStart = nowDate.between(DateUtil.beginOfDay(nowDate), DateUnit.SECOND);
         String pattern = ((betweenDayStart / (5 * 60)) + 1) + ":";
-        Long size = stringRedisTemplate.opsForHyperLogLog().add(BLOG_READ_KEY + pattern + blogId, String.valueOf(userId));
-        return size.intValue();
+        stringRedisTemplate.opsForSet().add(BLOG_READ_KEY + pattern + blogId, String.valueOf(userId));
     }
 
     private BlogVo transferToBlogVo(Blog blog) {

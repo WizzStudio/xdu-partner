@@ -219,7 +219,7 @@ public class ScheduleMission {
             return;
         }
         keys.stream().parallel().forEach(each -> {
-            Long size = stringRedisTemplate.opsForHyperLogLog().size(each);
+            Long size = stringRedisTemplate.opsForSet().size(each);
             // 将key拆分
             String split = each.substring(each.lastIndexOf(':') + 1);
             // 根据blogId获取
