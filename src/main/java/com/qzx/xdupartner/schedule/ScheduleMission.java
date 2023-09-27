@@ -208,7 +208,7 @@ public class ScheduleMission {
     }
 
     //    @Scheduled(cron = "0 0 5 * * ?")
-    @Scheduled(cron = "*/5 * * * *")
+    @Scheduled(cron = "0 */5 * * * ?")
     @Transactional(rollbackFor = Exception.class)
     public void putViewTimeInToDb() {
         DateTime nowDate = DateUtil.date();
