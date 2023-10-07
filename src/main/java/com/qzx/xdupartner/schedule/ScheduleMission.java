@@ -208,7 +208,7 @@ public class ScheduleMission {
     }
 
     //    @Scheduled(cron = "0 0 5 * * ?")
-    @Scheduled(cron = "0 */5 * * * ?")
+    @Scheduled(cron = "0 0/5 * * * ?")
     @Transactional(rollbackFor = Exception.class)
     public void putViewTimeInToDb() {
         DateTime nowDate = DateUtil.date();
@@ -218,7 +218,10 @@ public class ScheduleMission {
         if (keys == null) {
             return;
         }
-        keys.stream().parallel().forEach(each -> {
+        log.info("开始执行浏览量落表");
+        long start = System.currentTimeMillis();
+        keys.stream().forEach(each -> {
+            log.info("浏览量落表,帖子key:{}",each);
             Long size = stringRedisTemplate.opsForSet().size(each);
             // 将key拆分
             String split = each.substring(each.lastIndexOf(':') + 1);
@@ -231,5 +234,7 @@ public class ScheduleMission {
             blogMapper.updateById(blog);
             stringRedisTemplate.delete(each);
         });
+         long end = System.currentTimeMillis();
+        log.info("浏览量落表，耗时：{}", end - start);
     }
 }
