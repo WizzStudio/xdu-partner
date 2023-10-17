@@ -10,7 +10,6 @@ import com.alibaba.fastjson.support.spring.FastJsonRedisSerializer;
 
 @Configuration
 public class RedisConfig {
-
     @Bean
     @SuppressWarnings(value = {"unchecked", "rawtypes"})
     public RedisTemplate<Object, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
