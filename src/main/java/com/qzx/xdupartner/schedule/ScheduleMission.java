@@ -58,58 +58,58 @@ public class ScheduleMission {
     /**
      * 定时更新问题浏览量到数据库中
      * 每天凌晨两点跑一次
-     */
-    @Scheduled(cron = "0 0 2 * * ?")
-//    @Scheduled(cron = "0/5 0/1 * * * ?")
-    @Transactional(rollbackFor = Exception.class)
-    public void updateQuestionView() {
-        log.info("开始执行浏览量入库");
-        long start = System.currentTimeMillis();
-        ScheduleLog scheduleLog = new ScheduleLog();
-        scheduleLog.setName("定时更新浏览量");
-        scheduleLog.setType(1);
-        // 获取全部的key
-        String pattern = RedisConstant.BLOG_READ_KEY + "*";
-        Set<String> keys = stringRedisTemplate.keys(pattern);
-        if (keys == null) {
-            return;
-        }
-        try {
-            for (String key : keys
-            ) {
-                Long viewTimes = Long.valueOf(stringRedisTemplate.opsForValue().get(key));
-                // 将key拆分
-                String split = key.substring(key.lastIndexOf(':') + 1);
-                // 根据问题id获取
-                Blog blog = blogMapper.selectById(split);
-                if (ObjectUtil.isEmpty(blog)) {
-                    continue;
-                }
+//      */
+//     @Scheduled(cron = "0 0 2 * * ?")
+// //    @Scheduled(cron = "0/5 0/1 * * * ?")
+//     @Transactional(rollbackFor = Exception.class)
+//     public void updateQuestionView() {
+//         log.info("开始执行浏览量入库");
+//         long start = System.currentTimeMillis();
+//         ScheduleLog scheduleLog = new ScheduleLog();
+//         scheduleLog.setName("定时更新浏览量");
+//         scheduleLog.setType(1);
+//         // 获取全部的key
+//         String pattern = RedisConstant.BLOG_READ_KEY + "*";
+//         Set<String> keys = stringRedisTemplate.keys(pattern);
+//         if (keys == null) {
+        //     return;
+        // }
+        // try {
+        //     for (String key : keys
+        //     ) {
+        //         Long viewTimes = Long.valueOf(stringRedisTemplate.opsForValue().get(key));
+        //         // 将key拆分
+        //         String split = key.substring(key.lastIndexOf(':') + 1);
+        //         // 根据问题id获取
+        //         Blog blog = blogMapper.selectById(split);
+        //         if (ObjectUtil.isEmpty(blog)) {
+        //             continue;
+        //         }
                 // 更改浏览量
-                blog.setViewTimes(viewTimes.intValue() + blog.getViewTimes());
-                int count = blogMapper.updateById(blog);
-                if (count == 0) {
-                    throw new RuntimeException("浏览量更新失败");
-                }
-                // 删除key
-                stringRedisTemplate.delete(key);
-            }
-            long end = System.currentTimeMillis();
-            log.info("浏览量入库结束，耗时：{}", end - start);
-            scheduleLog.setStatus(1);
-            scheduleLog.setRemark("任务执行成功");
-            scheduleLog.setTime((int) (end - start));
-        } catch (Exception e) {
-            e.fillInStackTrace();
-            log.error(Arrays.toString(e.getStackTrace()));
-            long end = System.currentTimeMillis();
-            scheduleLog.setStatus(2);
-            scheduleLog.setRemark(e.getMessage());
-            scheduleLog.setTime((int) (end - start));
-        } finally {
-            scheduleLogMapper.insert(scheduleLog);
-        }
-    }
+        //         blog.setViewTimes(viewTimes.intValue() + blog.getViewTimes());
+        //         int count = blogMapper.updateById(blog);
+        //         if (count == 0) {
+        //             throw new RuntimeException("浏览量更新失败");
+        //         }
+        //         // 删除key
+        //         stringRedisTemplate.delete(key);
+        //     }
+        //     long end = System.currentTimeMillis();
+        //     log.info("浏览量入库结束，耗时：{}", end - start);
+        //     scheduleLog.setStatus(1);
+        //     scheduleLog.setRemark("任务执行成功");
+        //     scheduleLog.setTime((int) (end - start));
+        // } catch (Exception e) {
+        //     e.fillInStackTrace();
+    //         log.error(Arrays.toString(e.getStackTrace()));
+    //         long end = System.currentTimeMillis();
+    //         scheduleLog.setStatus(2);
+    //         scheduleLog.setRemark(e.getMessage());
+    //         scheduleLog.setTime((int) (end - start));
+    //     } finally {
+    //         scheduleLogMapper.insert(scheduleLog);
+    //     }
+    // }
 
     @Scheduled(cron = "0 0 4 * * ?")
 //    @Scheduled(cron = "0/5 0/1 * * * ?")
