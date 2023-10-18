@@ -7,6 +7,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
@@ -46,6 +49,7 @@ public class XduAuthUtil {
         put("type", "userNameLogin");
     }};
     private static final Map<String, Set<HttpCookie>> cookieMap = new ConcurrentHashMap<>();
+    private static final ExecutorService executor = Executors.newCachedThreadPool();
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
@@ -59,36 +63,48 @@ public class XduAuthUtil {
      * @return
      */
     public Integer login(String username, String password) throws Exception {
+        FutureTask<Integer> captchaReq = getIntegerFutureTask(username);
+        executor.submit(captchaReq);
         HttpResponse response1 =
                 HttpUtil.createGet(authTarget).setFollowRedirects(true).form(firstRequestMap).keepAlive(true).execute();
         Set<HttpCookie> cookies = new HashSet<>(response1.getCookies());
-        String key = RedisConstant.NEED_CAPTCHA_USER + username;
         Map<String, Object> param = explainResponse(response1);
-        if (checkIfNeedCaptcha(username, cookies)) {
-            Img captchaImage = getCaptcha(username, cookies);
-            cookieMap.put(key, cookies);
-            stringRedisTemplate.opsForHash().putAll(key, new HashMap<String,
-                    Object>(param) {{
-                put("img", ImgUtil.toBase64(captchaImage.getImg(), "jpg"));
-            }});
-            stringRedisTemplate.expire(key, 5, TimeUnit.MINUTES);
+        param.put("password", XduAesUtil.encrypt(password, String.valueOf(param.get("salt"))));
+        param.put("username", username);
+        param.put("rememberMe", "true");
+        if (captchaReq.get(3, TimeUnit.SECONDS) == 2) {
             return 2;
         }
-        param.put("password", XduAesUtil.encrypt(password, String.valueOf(param.get("salt"))));
-        param.putAll(new HashMap<String, Object>() {
-            {
-                put("username", username);
-                put("rememberMe", "true");
-            }
-        });
         HttpResponse response2 =
-                HttpUtil.createPost(authTarget).setFollowRedirects(true).setMaxRedirectCount(4).cookie(cookies).form(param).execute();
+                HttpUtil.createPost(authTarget).setFollowRedirects(true).setMaxRedirectCount(4)
+                        .cookie(cookies)
+                        .form(param).execute();
         cookies.addAll(response2.getCookies());
+        response2.close();
         Boolean isLoggedIn = checkIfLogin(cookies);
         if (isLoggedIn) {
             return 1;
         }
         return 0;
+    }
+
+    private FutureTask<Integer> getIntegerFutureTask(String username) {
+        String key = RedisConstant.NEED_CAPTCHA_USER + username;
+        FutureTask<Integer> captchaReq = new FutureTask<>(() -> {
+            if (checkIfNeedCaptcha(username)) {
+//            Img captchaImage = getCaptcha(username, cookies);
+                Img captchaImage = getCaptcha(username);
+//            cookieMap.put(key, cookies);
+                stringRedisTemplate.opsForHash().putAll(key, new HashMap<String,
+                        Object>() {{
+                    put("img", ImgUtil.toBase64(captchaImage.getImg(), "jpg"));
+                }});
+                stringRedisTemplate.expire(key, 5, TimeUnit.MINUTES);
+                return 2;
+            }
+            return 1;
+        });
+        return captchaReq;
     }
 
 
@@ -127,8 +143,10 @@ public class XduAuthUtil {
             return 1;
         }
         Set<HttpCookie> cookies = cookieMap.get(username);
-        if (checkIfNeedCaptcha(username, cookies)) {
-            Img captchaImage = getCaptcha(username, cookies);
+//        if (checkIfNeedCaptcha(username, cookies)) {
+        if (checkIfNeedCaptcha(username)) {
+//            Img captchaImage = getCaptcha(username, cookies);
+            Img captchaImage = getCaptcha(username);
             cookieMap.put(key, cookies);
             stringRedisTemplate.opsForHash().put(key,
                     "img", ImgUtil.toBase64(captchaImage.getImg(), "jpg")
@@ -146,27 +164,43 @@ public class XduAuthUtil {
         return JSONUtil.parseObj(body).get("hasLogin").toString().equalsIgnoreCase("true");
     }
 
-    private Img getCaptcha(String username, Set<HttpCookie> cookies) {
+    private Img getCaptcha(String username) {
+//    private Img getCaptcha(String username, Set<HttpCookie> cookies) {
         HttpResponse response =
                 HttpUtil.createGet(getCaptchaUrl).setFollowRedirects(true).form(new HashMap<String, Object>() {{
                     put(String.valueOf(System.currentTimeMillis()), "");
                 }}).keepAlive(true).execute();
-        cookies.addAll(response.getCookies());
+//        cookies.addAll(response.getCookies());
         return Img.from(response.bodyStream());
     }
 
-    private Boolean checkIfNeedCaptcha(String username, Set<HttpCookie> cookies) {
+//    public static void main(String[] args) throws Exception {
+//        XduAuthUtil xduAuthUtil = new XduAuthUtil();
+//        long start = System.currentTimeMillis();
+//        System.out.println(xduAuthUtil.login("21009200334", "1500418656"));
+////        System.out.println(xduAuthUtil.checkIfNeedCaptcha("210092003789"));
+////        System.out.println(ImgUtil.toBase64(xduAuthUtil.getCaptcha("210092003789").getImg(),ImgUtil.IMAGE_TYPE_BMP));
+//        long end = System.currentTimeMillis();
+//        System.out.println(end - start);
+//        System.out.println(executor.isShutdown());
+////        System.out.println(param);
+//    }
+
+    //    private Boolean checkIfNeedCaptcha(String username, Set<HttpCookie> cookies) {
+    private Boolean checkIfNeedCaptcha(String username) {
         HttpResponse response =
                 HttpUtil.createGet(captcha).setFollowRedirects(true).form(new HashMap<String, Object>() {{
-                    put("username", username);
-                    put("_", System.currentTimeMillis());
-                }}).cookie(cookies).keepAlive(true).execute();
-        cookies.addAll(response.getCookies());
+                            put("username", username);
+                            put("_", System.currentTimeMillis());
+                        }})
+//                        .cookie(cookies)
+                        .keepAlive(true).execute();
+//        cookies.addAll(response.getCookies());
         String isNeed = String.valueOf(JSONUtil.parseObj(response.body()).get("isNeed"));
         return isNeed.equalsIgnoreCase("true");
     }
 
-    private Map<String, Object> explainResponse(HttpResponse response) throws Exception {
+    private static Map<String, Object> explainResponse(HttpResponse response) throws Exception {
         String page = response.body();
         Document document = Jsoup.parse(page);
         Element form = document.getElementById("pwdFromId");
