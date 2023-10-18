@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
@@ -37,6 +39,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
@@ -46,6 +49,7 @@ import cn.hutool.json.JSONUtil;
  * @author qzx
  * @since 2023-08-12
  */
+@Slf4j
 @RestController
 @RequestMapping("/user")
 public class UserController {
@@ -58,6 +62,8 @@ public class UserController {
     private XduAuthUtil xduAuthUtil;
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
+    private static final ExecutorService executor = Executors.newCachedThreadPool();
 
     private User transferToUser(UserInfoVo userInfoVo) {
         User user = BeanUtil.copyProperties(userInfoVo, User.class);
@@ -129,12 +135,17 @@ public class UserController {
                                      @NotNull(message = "密码不能为空") @RequestParam("password") String password,
                                      @RequestParam("vcode") String vcode) {
         Integer login = null;
+        long beginTime = System.currentTimeMillis();
         try {
+
+            log.info("login begin: stuId:{}, startTime:{}ms", stuId, beginTime);
             if (StrUtil.isNotBlank(vcode)) {
                 login = xduAuthUtil.loginWithCaptcha(stuId, password, vcode);
             } else {
                 login = xduAuthUtil.login(stuId, password);
             }
+            long endTime = System.currentTimeMillis();
+            log.info("login end: stuId:{}, endTime:{}ms, loginResult:{}", stuId, endTime, login);
         } catch (Exception e) {
             throw new RuntimeException("登录失败");
         }
@@ -142,8 +153,7 @@ public class UserController {
             return new HashMap<String, Object>(1) {{
                 put("msg", "登录失败");
             }};
-        }
-        if (login.equals(2)) {
+        } else if (login.equals(2)) {
             return new HashMap<String, Object>(2) {{
                 put("msg", "需要验证码");
                 put("vcode", stringRedisTemplate.opsForHash().get(RedisConstant.NEED_CAPTCHA_USER + stuId, "img"));
@@ -153,15 +163,17 @@ public class UserController {
         if (ObjectUtil.isNull(user)) {
             user = userService.insertNewUser(stuId);
         }
-        stringRedisTemplate.opsForValue()
-                .set(RedisConstant.LOGIN_PREFIX + user.getId(), JSONUtil.toJsonStr(user), RedisConstant.LOGIN_VALID_TTL,
-                        TimeUnit.HOURS);
-        UserHolder.saveUser(user);
-        HashMap<String, Object> res = new HashMap<String, Object>(1) {{
-            put("msg", "登录成功");
-        }};
+        User finalUser = user;
+        executor.submit(() -> stringRedisTemplate.opsForValue()
+                .set(RedisConstant.LOGIN_PREFIX + finalUser.getId(), JSONUtil.toJsonStr(finalUser), RedisConstant.LOGIN_VALID_TTL,
+                        TimeUnit.HOURS));
+//        UserHolder.saveUser(user);
+        HashMap<String, Object> res = new HashMap<>(3);
+        res.put("msg", "登录成功");
         res.put("token", JwtUtil.createJWT(String.valueOf(user.getId())));
         res.put("userId", user.getId());
+        long returnTime = System.currentTimeMillis();
+        log.info("login method return, returnTime:{}ms, cost:{}ms", returnTime, returnTime - beginTime);
         return res;
     }
 
