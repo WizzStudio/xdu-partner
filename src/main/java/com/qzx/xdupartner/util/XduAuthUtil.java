@@ -30,6 +30,7 @@ import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 第一次get请求authTarget获取hidden信息，
@@ -39,6 +40,7 @@ import cn.hutool.json.JSONUtil;
  * 第四次get请求ifLogin携带cookie获取json中的ifLogin字段判断是否成功登录（禁止重定向）
  */
 @Component
+@Slf4j
 public class XduAuthUtil {
     private static final String authTarget = "http://ids.xidian.edu.cn/authserver/login?service=http://ehall.xidian" +
             ".edu.cn/login?service=http://ehall.xidian.edu.cn/new/index.html";
@@ -75,13 +77,19 @@ public class XduAuthUtil {
         if (captchaReq.get(3, TimeUnit.SECONDS) == 2) {
             return 2;
         }
+        long beginTime = System.currentTimeMillis();
+        log.info("xduLogin begin, startTime:{}", beginTime);
         HttpResponse response2 =
                 HttpUtil.createPost(authTarget).setFollowRedirects(true).setMaxRedirectCount(4)
                         .cookie(cookies)
                         .form(param).execute();
         cookies.addAll(response2.getCookies());
         response2.close();
+        long endTime = System.currentTimeMillis();
+        log.info("xduLogin end, endTime:{}, cost:{}ms", endTime, endTime - beginTime);
         Boolean isLoggedIn = checkIfLogin(cookies);
+        long checkTime = System.currentTimeMillis();
+        log.info("xduLogin checkIfLogin, curTime:{}, cost:{}ms", checkTime, checkTime - endTime);
         if (isLoggedIn) {
             return 1;
         }
