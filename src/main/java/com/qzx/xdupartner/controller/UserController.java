@@ -138,14 +138,14 @@ public class UserController {
         long beginTime = System.currentTimeMillis();
         try {
 
-            log.info("login begin: stuId:{}, startTime:{}", stuId, beginTime);
+            log.debug("login begin: stuId:{}, startTime:{}", stuId, beginTime);
             if (StrUtil.isNotBlank(vcode)) {
                 login = xduAuthUtil.loginWithCaptcha(stuId, password, vcode);
             } else {
                 login = xduAuthUtil.login(stuId, password);
             }
             long endTime = System.currentTimeMillis();
-            log.info("login end: stuId:{}, endTime:{}, xduLoginCost:{}ms, loginResult:{}", stuId, endTime, endTime-beginTime, login);
+            log.debug("login end: stuId:{}, endTime:{}, xduLoginCost:{}ms, loginResult:{}", stuId, endTime, endTime-beginTime, login);
         } catch (Exception e) {
             throw new RuntimeException("登录失败");
         }
