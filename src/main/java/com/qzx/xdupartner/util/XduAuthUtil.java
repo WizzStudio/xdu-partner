@@ -68,13 +68,10 @@ public class XduAuthUtil {
         FutureTask<Integer> captchaReq = getIntegerFutureTask(username);
         executor.submit(captchaReq);
         log.info("login:send get authTarget");
-        HttpResponse response1 =
-                HttpUtil.createGet(authTarget).setFollowRedirects(true).form(firstRequestMap).keepAlive(true).execute();
+        HttpResponse response1 = getLoginPage();
         Set<HttpCookie> cookies = new HashSet<>(response1.getCookies());
-        response1.close();
-        log.info("login:explain response start");
         Map<String, Object> param = explainResponse(response1);
-        log.info("login:explain response finish");
+        log.info("login:send get authTarget finish");
         param.put("password", XduAesUtil.encrypt(password, String.valueOf(param.get("salt"))));
         param.put("username", username);
         param.put("rememberMe", "true");
@@ -84,9 +81,7 @@ public class XduAuthUtil {
         long beginTime = System.currentTimeMillis();
         log.info("login:xduLogin begin, startTime:{}", beginTime);
         HttpResponse response2 =
-                HttpUtil.createPost(authTarget).setFollowRedirects(true).setMaxRedirectCount(4)
-                        .cookie(cookies)
-                        .form(param).execute();
+                HttpUtil.createPost(authTarget).setFollowRedirects(true).setMaxRedirectCount(4).cookie(cookies).form(param).execute();
         cookies.addAll(response2.getCookies());
         response2.close();
         long endTime = System.currentTimeMillis();
@@ -100,6 +95,12 @@ public class XduAuthUtil {
         return 0;
     }
 
+    private static HttpResponse getLoginPage() {
+        HttpResponse response1 = HttpUtil.createGet(authTarget).setFollowRedirects(true).form(firstRequestMap).keepAlive(true).execute();
+        response1.close();
+        return response1;
+    }
+
     private FutureTask<Integer> getIntegerFutureTask(String username) {
         String key = RedisConstant.NEED_CAPTCHA_USER + username;
         FutureTask<Integer> captchaReq = new FutureTask<>(() -> {
@@ -107,8 +108,7 @@ public class XduAuthUtil {
 //            Img captchaImage = getCaptcha(username, cookies);
                 Img captchaImage = getCaptcha(username);
 //            cookieMap.put(key, cookies);
-                stringRedisTemplate.opsForHash().putAll(key, new HashMap<String,
-                        Object>() {{
+                stringRedisTemplate.opsForHash().putAll(key, new HashMap<String, Object>() {{
                     put("img", ImgUtil.toBase64(captchaImage.getImg(), "jpg"));
                 }});
                 stringRedisTemplate.expire(key, 5, TimeUnit.MINUTES);
@@ -121,8 +121,7 @@ public class XduAuthUtil {
 
 
     public Img getCaptchaImg(String username) {
-        String base64Img = (String) stringRedisTemplate.opsForHash().get(RedisConstant.NEED_CAPTCHA_USER + username,
-                "img");
+        String base64Img = (String) stringRedisTemplate.opsForHash().get(RedisConstant.NEED_CAPTCHA_USER + username, "img");
 //        System.out.println(base64Img);
         BufferedImage bufferedImage = ImgUtil.toImage(base64Img);
         return new Img(bufferedImage);
@@ -132,8 +131,7 @@ public class XduAuthUtil {
         String key = RedisConstant.NEED_CAPTCHA_USER + username;
         Set<HttpCookie> cookieInCache = cookieMap.get(key);
 //        jsonArray.stream().forEach(j -> cookieInRedis.add(BeanUtil.toBean(j, HttpCookie.class)));
-        Map<Object, Object> param =
-                stringRedisTemplate.opsForHash().entries(key);
+        Map<Object, Object> param = stringRedisTemplate.opsForHash().entries(key);
         param.put("password", XduAesUtil.encrypt(password, String.valueOf(param.get("salt"))));
         param.putAll(new HashMap<String, Object>() {
             {
@@ -144,9 +142,8 @@ public class XduAuthUtil {
         });
         param.remove("img");
         param.remove("salt");
-        HttpResponse response =
-                HttpUtil.createPost(authTarget).setFollowRedirects(true).setMaxRedirectCount(4).cookie(cookieInCache)
-                        .form(BeanUtil.beanToMap(param)).execute();
+        HttpResponse response = HttpUtil.createPost(authTarget).setFollowRedirects(true).setMaxRedirectCount(4).cookie(cookieInCache)
+                .form(BeanUtil.beanToMap(param)).execute();
         cookieInCache.addAll(response.getCookies());
         Boolean isLoggedIn = checkIfLogin(cookieInCache);
         if (isLoggedIn) {
@@ -160,9 +157,7 @@ public class XduAuthUtil {
 //            Img captchaImage = getCaptcha(username, cookies);
             Img captchaImage = getCaptcha(username);
             cookieMap.put(key, cookies);
-            stringRedisTemplate.opsForHash().put(key,
-                    "img", ImgUtil.toBase64(captchaImage.getImg(), "jpg")
-            );
+            stringRedisTemplate.opsForHash().put(key, "img", ImgUtil.toBase64(captchaImage.getImg(), "jpg"));
             stringRedisTemplate.expire(key, 5, TimeUnit.MINUTES);
             return 2;
         }
@@ -171,42 +166,52 @@ public class XduAuthUtil {
 
 
     private Boolean checkIfLogin(Set<HttpCookie> cookies) {
-        String body =
-                HttpUtil.createGet(ifLogin).setFollowRedirects(false).setMaxRedirectCount(0).cookie(cookies).execute().body();
+        String body = HttpUtil.createGet(ifLogin).setFollowRedirects(false).setMaxRedirectCount(0).cookie(cookies).execute().body();
         return JSONUtil.parseObj(body).get("hasLogin").toString().equalsIgnoreCase("true");
     }
 
     private Img getCaptcha(String username) {
 //    private Img getCaptcha(String username, Set<HttpCookie> cookies) {
-        HttpResponse response =
-                HttpUtil.createGet(getCaptchaUrl).setFollowRedirects(true).form(new HashMap<String, Object>() {{
-                    put(String.valueOf(System.currentTimeMillis()), "");
-                }}).keepAlive(true).execute();
+        HttpResponse response = HttpUtil.createGet(getCaptchaUrl).setFollowRedirects(true).form(new HashMap<String, Object>() {{
+            put(String.valueOf(System.currentTimeMillis()), "");
+        }}).keepAlive(true).execute();
 //        cookies.addAll(response.getCookies());
         return Img.from(response.bodyStream());
     }
 
-//    public static void main(String[] args) throws Exception {
-//        XduAuthUtil xduAuthUtil = new XduAuthUtil();
-//        long start = System.currentTimeMillis();
+    public static void main(String[] args) throws Exception {
+        XduAuthUtil xduAuthUtil = new XduAuthUtil();
+        HttpUtil.get("baidu.com");
+        test();
+        test();
+
+    }
+
+    private static void test() throws Exception {
+        long start = System.currentTimeMillis();
+        System.out.println("a:" + start);
+        HttpResponse loginPage = getLoginPage();
+        System.out.println("b:" + (System.currentTimeMillis() - start));
+        Set<HttpCookie> cookies = new HashSet<>(loginPage.getCookies());
+        Map<String, Object> param = explainResponse(loginPage);
 //        System.out.println(xduAuthUtil.login("21009200334", "1500418656"));
-////        System.out.println(xduAuthUtil.checkIfNeedCaptcha("210092003789"));
-////        System.out.println(ImgUtil.toBase64(xduAuthUtil.getCaptcha("210092003789").getImg(),ImgUtil.IMAGE_TYPE_BMP));
-//        long end = System.currentTimeMillis();
-//        System.out.println(end - start);
+//        System.out.println(xduAuthUtil.checkIfNeedCaptcha("210092003789"));
+//        System.out.println(ImgUtil.toBase64(xduAuthUtil.getCaptcha("210092003789").getImg(),ImgUtil.IMAGE_TYPE_BMP));
+        long end = System.currentTimeMillis();
+        System.out.println("c:" + (end - start));
+    }
 //        System.out.println(executor.isShutdown());
-////        System.out.println(param);
-//    }
+//        System.out.println(param);
+
 
     //    private Boolean checkIfNeedCaptcha(String username, Set<HttpCookie> cookies) {
     private Boolean checkIfNeedCaptcha(String username) {
-        HttpResponse response =
-                HttpUtil.createGet(captcha).setFollowRedirects(true).form(new HashMap<String, Object>() {{
-                            put("username", username);
-                            put("_", System.currentTimeMillis());
-                        }})
+        HttpResponse response = HttpUtil.createGet(captcha).setFollowRedirects(true).form(new HashMap<String, Object>() {{
+                    put("username", username);
+                    put("_", System.currentTimeMillis());
+                }})
 //                        .cookie(cookies)
-                        .keepAlive(true).execute();
+                .keepAlive(true).execute();
 //        cookies.addAll(response.getCookies());
         String isNeed = String.valueOf(JSONUtil.parseObj(response.body()).get("isNeed"));
         return isNeed.equalsIgnoreCase("true");
