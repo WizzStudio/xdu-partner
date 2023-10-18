@@ -138,14 +138,14 @@ public class UserController {
         long beginTime = System.currentTimeMillis();
         try {
 
-            log.debug("login begin: stuId:{}, startTime:{}", stuId, beginTime);
+            log.info("login: begin: stuId:{}, startTime:{}", stuId, beginTime);
             if (StrUtil.isNotBlank(vcode)) {
                 login = xduAuthUtil.loginWithCaptcha(stuId, password, vcode);
             } else {
                 login = xduAuthUtil.login(stuId, password);
             }
             long endTime = System.currentTimeMillis();
-            log.debug("login end: stuId:{}, endTime:{}, xduLoginCost:{}ms, loginResult:{}", stuId, endTime, endTime-beginTime, login);
+            log.info("login: end: stuId:{}, endTime:{}, xduLoginCost:{}ms, loginResult:{}", stuId, endTime, endTime-beginTime, login);
         } catch (Exception e) {
             throw new RuntimeException("登录失败");
         }
@@ -173,7 +173,7 @@ public class UserController {
         res.put("token", JwtUtil.createJWT(String.valueOf(user.getId())));
         res.put("userId", user.getId());
         long returnTime = System.currentTimeMillis();
-        log.info("login method return, returnTime:{}, cost:{}ms", returnTime, returnTime - beginTime);
+        log.info("login: method return, returnTime:{}, cost:{}ms", returnTime, returnTime - beginTime);
         return res;
     }
 

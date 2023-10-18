@@ -67,14 +67,14 @@ public class XduAuthUtil {
     public Integer login(String username, String password) throws Exception {
         FutureTask<Integer> captchaReq = getIntegerFutureTask(username);
         executor.submit(captchaReq);
-        log.debug("send get authTarget");
+        log.info("login:send get authTarget");
         HttpResponse response1 =
                 HttpUtil.createGet(authTarget).setFollowRedirects(true).form(firstRequestMap).keepAlive(true).execute();
         Set<HttpCookie> cookies = new HashSet<>(response1.getCookies());
         response1.close();
-        log.debug("explain response start");
+        log.info("login:explain response start");
         Map<String, Object> param = explainResponse(response1);
-        log.debug("explain response finish");
+        log.info("login:explain response finish");
         param.put("password", XduAesUtil.encrypt(password, String.valueOf(param.get("salt"))));
         param.put("username", username);
         param.put("rememberMe", "true");
@@ -82,7 +82,7 @@ public class XduAuthUtil {
             return 2;
         }
         long beginTime = System.currentTimeMillis();
-        log.debug("xduLogin begin, startTime:{}", beginTime);
+        log.info("login:xduLogin begin, startTime:{}", beginTime);
         HttpResponse response2 =
                 HttpUtil.createPost(authTarget).setFollowRedirects(true).setMaxRedirectCount(4)
                         .cookie(cookies)
@@ -90,10 +90,10 @@ public class XduAuthUtil {
         cookies.addAll(response2.getCookies());
         response2.close();
         long endTime = System.currentTimeMillis();
-        log.debug("xduLogin end, endTime:{}, cost:{}ms", endTime, endTime - beginTime);
+        log.info("login:xduLogin end, endTime:{}, cost:{}ms", endTime, endTime - beginTime);
         Boolean isLoggedIn = checkIfLogin(cookies);
         long checkTime = System.currentTimeMillis();
-        log.debug("xduLogin checkIfLogin, curTime:{}, cost:{}ms", checkTime, checkTime - endTime);
+        log.info("login:xduLogin checkIfLogin, curTime:{}, cost:{}ms", checkTime, checkTime - endTime);
         if (isLoggedIn) {
             return 1;
         }
