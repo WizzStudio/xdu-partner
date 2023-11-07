@@ -2,10 +2,7 @@ package com.qzx.xdupartner.util;
 
 import java.awt.image.BufferedImage;
 import java.net.HttpCookie;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -14,6 +11,10 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 
+import cn.hutool.http.HttpRequest;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -95,6 +96,28 @@ public class XduAuthUtil {
         return 0;
     }
 
+    public Integer loginV2(String username,String password) throws Exception {
+        Boolean needCaptcha = checkIfNeedCaptcha(username);
+        if(needCaptcha)return 2;
+        HttpRequest pageRequest = HttpUtil.createGet(authTarget).form(firstRequestMap);
+        HttpResponse execute = pageRequest.execute();
+        Map<String, Object> param = getLoginParamFromPage(execute.body());
+
+        List<HttpCookie> cookies = execute.getCookies();
+        param.put("password", XduAesUtil.encrypt(password, String.valueOf(param.get("salt"))));
+        param.put("username", username);
+        HttpResponse response =
+                HttpUtil.createPost(authTarget).cookie(cookies).form(param).execute();
+        if(StringUtils.isNotBlank(response.getCookieValue("happyVoyagePersonal"))){
+            return 1;
+        }
+        return 0;
+    }
+
+    public static void main(String[] args) throws Exception {
+        Integer login = new XduAuthUtil().loginV2("21009200334", "1500418656");
+        System.out.println(login);
+    }
     private static HttpResponse getLoginPage() {
         HttpResponse response1 = HttpUtil.createGet(authTarget).setFollowRedirects(true).form(firstRequestMap).keepAlive(true).execute();
         response1.close();
@@ -179,14 +202,6 @@ public class XduAuthUtil {
         return Img.from(response.bodyStream());
     }
 
-    public static void main(String[] args) throws Exception {
-        XduAuthUtil xduAuthUtil = new XduAuthUtil();
-        HttpUtil.get("baidu.com");
-        test();
-        test();
-
-    }
-
     private static void test() throws Exception {
         long start = System.currentTimeMillis();
         System.out.println("a:" + start);
@@ -219,6 +234,10 @@ public class XduAuthUtil {
 
     private static Map<String, Object> explainResponse(HttpResponse response) throws Exception {
         String page = response.body();
+        return getLoginParamFromPage(page);
+    }
+
+    private static Map<String,Object> getLoginParamFromPage(String page){
         Document document = Jsoup.parse(page);
         Element form = document.getElementById("pwdFromId");
         String salt = form.getElementById("pwdEncryptSalt").attr("value");
@@ -228,6 +247,4 @@ public class XduAuthUtil {
         body.put("salt", salt);
         return body;
     }
-
-
 }

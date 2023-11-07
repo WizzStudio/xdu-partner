@@ -142,7 +142,7 @@ public class UserController {
             if (StrUtil.isNotBlank(vcode)) {
                 login = xduAuthUtil.loginWithCaptcha(stuId, password, vcode);
             } else {
-                login = xduAuthUtil.login(stuId, password);
+                login = xduAuthUtil.loginV2(stuId, password);
             }
             long endTime = System.currentTimeMillis();
             log.info("login: end: stuId:{}, endTime:{}, xduLoginCost:{}ms, loginResult:{}", stuId, endTime, endTime-beginTime, login);
@@ -155,8 +155,8 @@ public class UserController {
             }};
         } else if (login.equals(2)) {
             return new HashMap<String, Object>(2) {{
-                put("msg", "需要验证码");
-                put("vcode", stringRedisTemplate.opsForHash().get(RedisConstant.NEED_CAPTCHA_USER + stuId, "img"));
+                put("msg", "登录需要验证码，请到西电一站式网站手动登录成功后再来登录");
+//                put("vcode", stringRedisTemplate.opsForHash().get(RedisConstant.NEED_CAPTCHA_USER + stuId, "img"));
             }};
         }
         User user = userService.lambdaQuery().eq(User::getStuId, stuId).one();
