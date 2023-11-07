@@ -39,6 +39,7 @@ public class TokenInterceptor implements HandlerInterceptor {
                 userid = claims.getSubject();
             } catch (Exception e) {
                 response.setStatus(401);
+                response.setCharacterEncoding("utf-8");
                 response.getWriter().write(JSONUtil.toJsonStr(new ResultVo(2000, "登录过期", "登录过期")));
                 return false;
             }
@@ -46,6 +47,7 @@ public class TokenInterceptor implements HandlerInterceptor {
             User loginUser = JSONUtil.toBean(stringRedisTemplate.opsForValue().get(redisKey), User.class);
             if (Objects.isNull(loginUser)) {
                 response.setStatus(401);
+                response.setCharacterEncoding("utf-8");
                 response.getWriter().write(JSONUtil.toJsonStr(new ResultVo(2000, "登录过期", "登录过期")));
                 return false;
             }

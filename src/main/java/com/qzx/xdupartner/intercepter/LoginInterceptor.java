@@ -21,6 +21,7 @@ public class LoginInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         if (UserHolder.getUser() == null) {
             response.setStatus(401);
+            response.setCharacterEncoding("utf-8");
             response.getWriter().write(JSONUtil.toJsonStr(new ResultVo(2000, "登录过期", "登录过期")));
             return false;
         }
