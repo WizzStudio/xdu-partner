@@ -186,11 +186,11 @@ public class UserController {
                 return res;
             }
             return new HashMap<String, Object>(1) {{
-                put("msg", "登录需要验证码，请到西电一站式网站手动登录成功后再来登录");
+                put("msg", "登录失败");
             }};
         }
         return new HashMap<String, Object>(1) {{
-            put("msg", "登录失败");
+            put("msg", "登录需要验证码，请到西电一站式网站手动登录成功后再来登录");
         }};
     }
 
