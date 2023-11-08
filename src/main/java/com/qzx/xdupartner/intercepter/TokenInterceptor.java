@@ -51,7 +51,7 @@ public class TokenInterceptor implements HandlerInterceptor {
                 response.getWriter().write(JSONUtil.toJsonStr(new ResultVo(2000, "登录过期", "登录过期")));
                 return false;
             }
-            stringRedisTemplate.expire(redisKey, RedisConstant.LOGIN_VALID_TTL, TimeUnit.HOURS);
+//            stringRedisTemplate.expire(redisKey, RedisConstant.LOGIN_VALID_TTL, TimeUnit.HOURS);
             UserHolder.saveUser(loginUser);
         }
         return true;

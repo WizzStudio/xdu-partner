@@ -1,27 +1,11 @@
 package com.qzx.xdupartner.controller;
 
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.Resource;
-import javax.validation.constraints.NotNull;
-
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.qzx.xdupartner.constant.RedisConstant;
 import com.qzx.xdupartner.constant.SystemConstant;
 import com.qzx.xdupartner.entity.User;
@@ -33,13 +17,20 @@ import com.qzx.xdupartner.service.UserService;
 import com.qzx.xdupartner.util.JwtUtil;
 import com.qzx.xdupartner.util.UserHolder;
 import com.qzx.xdupartner.util.XduAuthUtil;
-
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.RandomUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
+import javax.validation.constraints.NotNull;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -132,22 +123,22 @@ public class UserController {
 
     @PostMapping(value = "/login", produces = "application/json;charset=utf-8")
     public Map<String, Object> login(@NotNull(message = "学号不能为空") @RequestParam("stuId") String stuId,
-                                     @NotNull(message = "密码不能为空") @RequestParam("password") String password,
-                                     @RequestParam("vcode") String vcode) {
+                                     @NotNull(message = "密码不能为空") @RequestParam("password") String password) {
         Integer login = null;
         long beginTime = System.currentTimeMillis();
         try {
 
             log.info("login: begin: stuId:{}, startTime:{}", stuId, beginTime);
-            if (StrUtil.isNotBlank(vcode)) {
-                login = xduAuthUtil.loginWithCaptcha(stuId, password, vcode);
-            } else {
-                login = xduAuthUtil.loginV2(stuId, password);
-            }
+//            if (StrUtil.isNotBlank(vcode)) {
+//                login = xduAuthUtil.loginWithCaptcha(stuId, password, vcode);
+//            } else {
+            login = xduAuthUtil.loginV2(stuId, password);
+//            }
             long endTime = System.currentTimeMillis();
-            log.info("login: end: stuId:{}, endTime:{}, xduLoginCost:{}ms, loginResult:{}", stuId, endTime, endTime-beginTime, login);
+            log.info("login: end: stuId:{}, endTime:{}, xduLoginCost:{}ms, loginResult:{}", stuId, endTime,
+                    endTime - beginTime, login);
         } catch (Exception e) {
-            throw new RuntimeException("登录失败");
+            log.error(e.getMessage());
         }
         if (ObjectUtil.isNull(login) || login.equals(0)) {
             return new HashMap<String, Object>(1) {{
@@ -165,7 +156,8 @@ public class UserController {
         }
         User finalUser = user;
         executor.submit(() -> stringRedisTemplate.opsForValue()
-                .set(RedisConstant.LOGIN_PREFIX + finalUser.getId(), JSONUtil.toJsonStr(finalUser), RedisConstant.LOGIN_VALID_TTL,
+                .set(RedisConstant.LOGIN_PREFIX + finalUser.getId(), JSONUtil.toJsonStr(finalUser),
+                        RedisConstant.LOGIN_VALID_TTL,
                         TimeUnit.HOURS));
 //        UserHolder.saveUser(user);
         HashMap<String, Object> res = new HashMap<>(3);
@@ -176,7 +168,31 @@ public class UserController {
         log.info("login: method return, returnTime:{}, cost:{}ms", returnTime, returnTime - beginTime);
         return res;
     }
-
+    @PostMapping(value = "/testLogin", produces = "application/json;charset=utf-8")
+    public Map<String, Object> testLogin(@NotNull(message = "学号不能为空") @RequestParam("stuId") String stuId,
+                                     @NotNull(message = "密码不能为空") @RequestParam("password") String password){
+        HashMap<String, Object> res = new HashMap<>(3);
+        if(stuId.equals("12345678")){
+            if(password.equals("12345678")){
+                User user = userService.lambdaQuery().eq(User::getStuId, stuId).one();
+                res.put("msg", "登录成功");
+                stringRedisTemplate.opsForValue()
+                        .set(RedisConstant.LOGIN_PREFIX + user.getId(), JSONUtil.toJsonStr(user),
+                                RedisConstant.LOGIN_VALID_TTL,
+                                TimeUnit.HOURS);
+//                res.put("token", JwtUtil.createJWT(String.valueOf(user.getId())));
+                res.put("token", "已单独交付");
+                res.put("userId", user.getId());
+                return res;
+            }
+            return new HashMap<String, Object>(1) {{
+                put("msg", "登录需要验证码，请到西电一站式网站手动登录成功后再来登录");
+            }};
+        }
+        return new HashMap<String, Object>(1) {{
+            put("msg", "登录失败");
+        }};
+    }
 
     @GetMapping(value = "/me")
     public UserInfoVo ofMe() {

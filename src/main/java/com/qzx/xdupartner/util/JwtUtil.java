@@ -95,9 +95,8 @@ public class JwtUtil {
 
     //for test
     public static void main(String[] args) throws Exception {
-        String token = "";
-        Claims claims = parseJWT(token);
-        System.out.println(claims);
+        String jwt = JwtUtil.createJWT(String.valueOf(35), JWT_TTL * 1000);
+        System.out.println(jwt);
     }
 
     /**

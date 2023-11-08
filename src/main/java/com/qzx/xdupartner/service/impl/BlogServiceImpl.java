@@ -124,7 +124,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         } else {
             UserVo anonymousVo = UserVo.getAnonymousVo();
             blogVo.setUserVo(anonymousVo);
-            ;
         }
         //image
         String imageStr = blog.getImages();
