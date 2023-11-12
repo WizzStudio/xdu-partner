@@ -1,27 +1,13 @@
 package com.qzx.xdupartner.service.impl;
 
-import static com.qzx.xdupartner.constant.RedisConstant.BLOG_READ_KEY;
-import static com.qzx.xdupartner.constant.RedisConstant.USESR_BLOG_LIKED_KEY;
-import static com.qzx.xdupartner.constant.SystemConstant.LIKE_PAGE_SIZE;
-import static com.qzx.xdupartner.constant.SystemConstant.MAX_PAGE_SIZE;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import javax.annotation.Resource;
-
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUnit;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -37,16 +23,21 @@ import com.qzx.xdupartner.mapper.BlogMapper;
 import com.qzx.xdupartner.service.BlogService;
 import com.qzx.xdupartner.service.UserService;
 import com.qzx.xdupartner.util.UserHolder;
-
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.date.DateTime;
-import cn.hutool.core.date.DateUnit;
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.RandomUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import static com.qzx.xdupartner.constant.RedisConstant.BLOG_READ_KEY;
+import static com.qzx.xdupartner.constant.RedisConstant.USESR_BLOG_LIKED_KEY;
+import static com.qzx.xdupartner.constant.SystemConstant.LIKE_PAGE_SIZE;
+import static com.qzx.xdupartner.constant.SystemConstant.MAX_PAGE_SIZE;
 
 /**
  * <p>
@@ -89,7 +80,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
                 TimeUnit.SECONDS);
         List<BlogVo> voRecords = new ArrayList<>(MAX_PAGE_SIZE);
         records.forEach(blog -> {
-            executor.submit(()->{
+            executor.submit(() -> {
                 AddViewTimes(blog.getId(), UserHolder.getUserId());
             });
             //当显示过的时候跳过
@@ -98,7 +89,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
                 BlogVo blogVo = transferToBlogVo(blog);
                 String readKey = RedisConstant.BLOG_READ_KEY + blogVo.getId();
                 //TODO 浏览量统计优化
-//                blogVo.setViewTimes((int) (blogVo.getViewTimes() + stringRedisTemplate.opsForValue().increment(readKey)));
+//                blogVo.setViewTimes((int) (blogVo.getViewTimes() + stringRedisTemplate.opsForValue().increment
+//                (readKey)));
                 blogVo.setViewTimes(blogVo.getViewTimes());
                 voRecords.add(blogVo);
             }

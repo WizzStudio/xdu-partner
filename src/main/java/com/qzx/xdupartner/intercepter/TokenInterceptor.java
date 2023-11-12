@@ -1,26 +1,22 @@
 package com.qzx.xdupartner.intercepter;
 
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.HandlerInterceptor;
-
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.qzx.xdupartner.constant.RedisConstant;
 import com.qzx.xdupartner.entity.User;
 import com.qzx.xdupartner.entity.vo.ResultVo;
 import com.qzx.xdupartner.util.JwtUtil;
 import com.qzx.xdupartner.util.UserHolder;
-
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import io.jsonwebtoken.Claims;
 import lombok.Setter;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerInterceptor;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Objects;
 
 @Setter
 @Component

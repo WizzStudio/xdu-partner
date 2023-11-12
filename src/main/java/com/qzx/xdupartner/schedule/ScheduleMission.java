@@ -1,28 +1,9 @@
 package com.qzx.xdupartner.schedule;
 
-import static com.qzx.xdupartner.constant.RedisConstant.BLOG_READ_KEY;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUnit;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.io.FileUtil;
 import com.huaban.analysis.jieba.JiebaSegmenter;
 import com.huaban.analysis.jieba.WordDictionary;
 import com.qzx.xdupartner.constant.RedisConstant;
@@ -31,13 +12,23 @@ import com.qzx.xdupartner.entity.Blog;
 import com.qzx.xdupartner.entity.ScheduleLog;
 import com.qzx.xdupartner.mapper.BlogMapper;
 import com.qzx.xdupartner.mapper.ScheduleLogMapper;
-
-import cn.hutool.core.date.DateTime;
-import cn.hutool.core.date.DateUnit;
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.util.ObjectUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+
+import static com.qzx.xdupartner.constant.RedisConstant.BLOG_READ_KEY;
 
 @Slf4j
 @Component
@@ -165,7 +156,7 @@ public class ScheduleMission {
         log.info("开始执行浏览量落表");
         long start = System.currentTimeMillis();
         keys.stream().forEach(each -> {
-            log.info("浏览量落表,帖子key:{}",each);
+            log.info("浏览量落表,帖子key:{}", each);
             Long size = stringRedisTemplate.opsForSet().size(each);
             // 将key拆分
             String split = each.substring(each.lastIndexOf(':') + 1);
@@ -178,7 +169,7 @@ public class ScheduleMission {
             blogMapper.updateById(blog);
             stringRedisTemplate.delete(each);
         });
-         long end = System.currentTimeMillis();
+        long end = System.currentTimeMillis();
         log.info("浏览量落表，耗时：{}", end - start);
     }
 }

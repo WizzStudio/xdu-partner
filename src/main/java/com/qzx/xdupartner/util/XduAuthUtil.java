@@ -1,20 +1,16 @@
 package com.qzx.xdupartner.util;
 
-import java.awt.image.BufferedImage;
-import java.net.HttpCookie;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.Resource;
-
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.img.Img;
+import cn.hutool.core.img.ImgUtil;
 import cn.hutool.http.HttpRequest;
+import cn.hutool.http.HttpResponse;
+import cn.hutool.http.HttpUtil;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
+import com.qzx.xdupartner.constant.RedisConstant;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -22,16 +18,11 @@ import org.jsoup.select.Elements;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
-import com.qzx.xdupartner.constant.RedisConstant;
-
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.img.Img;
-import cn.hutool.core.img.ImgUtil;
-import cn.hutool.http.HttpResponse;
-import cn.hutool.http.HttpUtil;
-import cn.hutool.json.JSONObject;
-import cn.hutool.json.JSONUtil;
-import lombok.extern.slf4j.Slf4j;
+import javax.annotation.Resource;
+import java.awt.image.BufferedImage;
+import java.net.HttpCookie;
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * 第一次get请求authTarget获取hidden信息，
@@ -97,23 +88,27 @@ public class XduAuthUtil {
     }
 
     public Integer loginV2(String username, String password) throws Exception {
-        Boolean needCaptcha = checkIfNeedCaptcha(username);
-        if (needCaptcha) return 2;
+//        Boolean needCaptcha = checkIfNeedCaptcha(username);
+//        if (needCaptcha) return 2;
+
         HttpRequest pageRequest = HttpUtil.createGet(authTarget).form(firstRequestMap);
         HttpResponse execute = pageRequest.execute();
         Map<String, Object> param = getLoginParamFromPage(execute.body());
-
+        log.info("get param success:{}", param);
         List<HttpCookie> cookies = execute.getCookies();
-        execute.close();
         param.put("password", XduAesUtil.encrypt(password, String.valueOf(param.get("salt"))));
         param.put("username", username);
         HttpResponse response =
                 HttpUtil.createPost(authTarget).cookie(cookies).form(param).execute();
+        log.info("get cookie success:{}", response.getCookies());
+
         if (StringUtils.isNotBlank(response.getCookieValue("happyVoyagePersonal"))) {
             response.close();
+            execute.close();
             return 1;
         }
         response.close();
+        execute.close();
         return 0;
     }
 
@@ -173,7 +168,7 @@ public class XduAuthUtil {
         param.remove("salt");
         HttpResponse response =
                 HttpUtil.createPost(authTarget).setFollowRedirects(true).setMaxRedirectCount(4).cookie(cookieInCache)
-                .form(BeanUtil.beanToMap(param)).execute();
+                        .form(BeanUtil.beanToMap(param)).execute();
         cookieInCache.addAll(response.getCookies());
         Boolean isLoggedIn = checkIfLogin(cookieInCache);
         if (isLoggedIn) {
@@ -232,11 +227,11 @@ public class XduAuthUtil {
     private Boolean checkIfNeedCaptcha(String username) {
         HttpResponse response =
                 HttpUtil.createGet(captcha).setFollowRedirects(true).form(new HashMap<String, Object>() {{
-                    put("username", username);
-                    put("_", System.currentTimeMillis());
-                }})
+                            put("username", username);
+                            put("_", System.currentTimeMillis());
+                        }})
 //                        .cookie(cookies)
-                .keepAlive(true).execute();
+                        .keepAlive(true).execute();
 //        cookies.addAll(response.getCookies());
         String isNeed = String.valueOf(JSONUtil.parseObj(response.body()).get("isNeed"));
         response.close();

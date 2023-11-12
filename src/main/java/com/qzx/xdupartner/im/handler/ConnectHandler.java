@@ -5,7 +5,6 @@ import com.qzx.xdupartner.entity.ReqMessage;
 import com.qzx.xdupartner.entity.RspMessage;
 import com.qzx.xdupartner.im.OnlineUserHolder;
 import com.qzx.xdupartner.util.JwtUtil;
-
 import io.jsonwebtoken.Claims;
 import io.netty.channel.ChannelHandlerContext;
 

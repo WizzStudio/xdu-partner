@@ -1,20 +1,18 @@
 package com.qzx.xdupartner.util;
 
-import java.util.Base64;
-import java.util.Date;
-import java.util.UUID;
-
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.Getter;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.util.Base64;
+import java.util.Date;
+import java.util.UUID;
 
 /**
  * JWT工具类
@@ -26,7 +24,7 @@ public class JwtUtil {
     public static final Long JWT_TTL = 14 * 24 * 60 * 60 * 1000L;// 60 * 60 *1000  一个小时
     //设置秘钥明文
     @Getter
-    public static String JWT_KEY = "qzxabc";
+    public static String JWT_KEY = "tjRuuL";
 
     @Value("${jwt_key}")
     public void setJwtKey(String jwtKey) {

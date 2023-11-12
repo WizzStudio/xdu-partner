@@ -1,10 +1,9 @@
 package com.qzx.xdupartner.entity.vo;
 
-import java.util.List;
-
 import com.qzx.xdupartner.entity.RspMessage;
-
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 public class MessageVo {

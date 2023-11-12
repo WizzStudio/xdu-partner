@@ -1,18 +1,16 @@
 package com.qzx.xdupartner.service.impl;
 
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.Resource;
-
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.stereotype.Service;
-
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qzx.xdupartner.constant.RedisConstant;
 import com.qzx.xdupartner.entity.Friend;
 import com.qzx.xdupartner.mapper.FriendMapper;
 import com.qzx.xdupartner.service.FriendService;
 import com.qzx.xdupartner.util.UserHolder;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -31,7 +29,8 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
     public boolean judgeIfFriend(Long otherId) {
         String isFriendKey =
                 stringRedisTemplate.opsForValue()
-                        .getAndExpire("" + UserHolder.getUserId() + RedisConstant.IS_FRIEND + otherId, RedisConstant.IS_FRIEND_TTL,
+                        .getAndExpire("" + UserHolder.getUserId() + RedisConstant.IS_FRIEND + otherId,
+                                RedisConstant.IS_FRIEND_TTL,
                                 TimeUnit.MINUTES);
         if ("1".equals(isFriendKey)) {
             return true;

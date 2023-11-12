@@ -168,12 +168,13 @@ public class UserController {
         log.info("login: method return, returnTime:{}, cost:{}ms", returnTime, returnTime - beginTime);
         return res;
     }
+
     @PostMapping(value = "/testLogin", produces = "application/json;charset=utf-8")
     public Map<String, Object> testLogin(@NotNull(message = "学号不能为空") @RequestParam("stuId") String stuId,
-                                     @NotNull(message = "密码不能为空") @RequestParam("password") String password){
+                                         @NotNull(message = "密码不能为空") @RequestParam("password") String password) {
         HashMap<String, Object> res = new HashMap<>(3);
-        if(stuId.equals("12345678")){
-            if(password.equals("12345678")){
+        if (stuId.equals("12345678")) {
+            if (password.equals("12345678")) {
                 User user = userService.lambdaQuery().eq(User::getStuId, stuId).one();
                 res.put("msg", "登录成功");
                 stringRedisTemplate.opsForValue()

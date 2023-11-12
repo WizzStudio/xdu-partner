@@ -1,11 +1,10 @@
 package com.qzx.xdupartner.service.impl;
 
-import org.springframework.stereotype.Service;
-
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qzx.xdupartner.entity.Mbti;
 import com.qzx.xdupartner.mapper.MbtiMapper;
 import com.qzx.xdupartner.service.MbtiService;
+import org.springframework.stereotype.Service;
 
 /**
  * <p>
