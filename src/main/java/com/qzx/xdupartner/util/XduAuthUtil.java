@@ -106,7 +106,8 @@ public class XduAuthUtil {
         response.close();
         execute.close();
         HttpRequest logout = HttpUtil.createGet("https://ids.xidian.edu.cn/personalInfo/logout").cookie(response.getCookies());
-        logout.execute();
+        HttpResponse logoutRsp = logout.execute();
+        logoutRsp.close();
         return res;
     }
 
