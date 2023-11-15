@@ -34,7 +34,8 @@ import java.util.concurrent.*;
 @Component
 @Slf4j
 public class XduAuthUtil {
-    private static final String authTarget = "https://ids.xidian.edu.cn/authserver/login?service=http%3A%2F%2Fehall.xidian.edu.cn%2F%2Flogin%3Fservice%3Dhttp%3A%2F%2Fehall.xidian.edu.cn%2Fnew%2Findex_xd.html%23%2Fhome";
+    private static final String authTarget = "https://ids.xidian.edu.cn/authserver/login?service=http%3A%2F%2Fehall" +
+            ".xidian.edu.cn%2F%2Flogin%3Fservice%3Dhttp%3A%2F%2Fehall.xidian.edu.cn%2Fnew%2Findex_xd.html%23%2Fhome";
     private static final String getCaptchaUrl = "http://ids.xidian.edu.cn/authserver/getCaptcha.htl";
     private static final String captcha = "https://ids.xidian.edu.cn/authserver/checkNeedCaptcha.htl";
     private static final String ifLogin = "http://ehall.xidian.edu.cn/jsonp/userFavoriteApps.json";
@@ -107,7 +108,8 @@ public class XduAuthUtil {
         execute.close();
         return 0;
     }
-    public static void test(String username,String password,List<HttpCookie> cookies,String page) throws Exception {
+
+    public static void test(String username, String password, List<HttpCookie> cookies, String page) throws Exception {
         Map<String, Object> param = getLoginParamFromPage(page);
         param.put("password", XduAesUtil.encrypt(password, String.valueOf(param.get("salt"))));
         param.put("username", username);
@@ -254,6 +256,7 @@ public class XduAuthUtil {
         body.put("salt", salt);
         return body;
     }
+
     public static void main(String[] args) throws Exception {
     }
 }
