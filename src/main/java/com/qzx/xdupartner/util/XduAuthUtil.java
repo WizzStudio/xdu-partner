@@ -99,14 +99,15 @@ public class XduAuthUtil {
         HttpRequest loginRequest = HttpUtil.createPost(authTarget).cookie(cookies).form(param);
         HttpResponse response = loginRequest.execute();
         log.info("get cookie success:{}", response.getCookies());
+        int res = 0;
         if (StringUtils.isNotBlank(response.getCookieValue("happyVoyagePersonal")) || StringUtils.isNotBlank(response.getCookieValue("happyVoyage"))) {
-            response.close();
-            execute.close();
-            return 1;
+            res = 1;
         }
         response.close();
         execute.close();
-        return 0;
+        HttpRequest logout = HttpUtil.createGet("https://ids.xidian.edu.cn/personalInfo/logout").cookie(response.getCookies());
+        logout.execute();
+        return res;
     }
 
     public static void test(String username, String password, List<HttpCookie> cookies, String page) throws Exception {
