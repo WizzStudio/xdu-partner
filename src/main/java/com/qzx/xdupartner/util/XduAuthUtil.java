@@ -98,7 +98,7 @@ public class XduAuthUtil {
         HttpRequest loginRequest = HttpUtil.createPost(authTarget).cookie(cookies).form(param);
         HttpResponse response = loginRequest.execute();
         log.info("get cookie success:{}", response.getCookies());
-        if (StringUtils.isNotBlank(response.getCookieValue("happyVoyagePersonal"))) {
+        if (StringUtils.isNotBlank(response.getCookieValue("happyVoyagePersonal")) || StringUtils.isNotBlank(response.getCookieValue("happyVoyage"))) {
             response.close();
             execute.close();
             return 1;
