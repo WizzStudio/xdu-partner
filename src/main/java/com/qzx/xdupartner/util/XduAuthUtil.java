@@ -34,8 +34,7 @@ import java.util.concurrent.*;
 @Component
 @Slf4j
 public class XduAuthUtil {
-    private static final String authTarget = "http://ids.xidian.edu.cn/authserver/login?service=http://ehall.xidian" +
-            ".edu.cn/login?service=http://ehall.xidian.edu.cn/new/index.html";
+    private static final String authTarget = "https://ids.xidian.edu.cn/authserver/login?service=http%3A%2F%2Fehall.xidian.edu.cn%2F%2Flogin%3Fservice%3Dhttp%3A%2F%2Fehall.xidian.edu.cn%2Fnew%2Findex_xd.html%23%2Fhome";
     private static final String getCaptchaUrl = "http://ids.xidian.edu.cn/authserver/getCaptcha.htl";
     private static final String captcha = "https://ids.xidian.edu.cn/authserver/checkNeedCaptcha.htl";
     private static final String ifLogin = "http://ehall.xidian.edu.cn/jsonp/userFavoriteApps.json";
@@ -88,20 +87,17 @@ public class XduAuthUtil {
     }
 
     public Integer loginV2(String username, String password) throws Exception {
-//        Boolean needCaptcha = checkIfNeedCaptcha(username);
-//        if (needCaptcha) return 2;
-
-        HttpRequest pageRequest = HttpUtil.createGet(authTarget).form(firstRequestMap);
+        HttpRequest pageRequest = HttpUtil.createGet(authTarget).form(firstRequestMap).enableDefaultCookie();
+        log.info("page request:{}", pageRequest);
         HttpResponse execute = pageRequest.execute();
         Map<String, Object> param = getLoginParamFromPage(execute.body());
-        log.info("get param success:{}", param);
         List<HttpCookie> cookies = execute.getCookies();
         param.put("password", XduAesUtil.encrypt(password, String.valueOf(param.get("salt"))));
         param.put("username", username);
-        HttpResponse response =
-                HttpUtil.createPost(authTarget).cookie(cookies).form(param).execute();
+        log.info("get param success:{}", param);
+        HttpRequest loginRequest = HttpUtil.createPost(authTarget).cookie(cookies).form(param);
+        HttpResponse response = loginRequest.execute();
         log.info("get cookie success:{}", response.getCookies());
-
         if (StringUtils.isNotBlank(response.getCookieValue("happyVoyagePersonal"))) {
             response.close();
             execute.close();
@@ -111,11 +107,16 @@ public class XduAuthUtil {
         execute.close();
         return 0;
     }
-
-    public static void main(String[] args) throws Exception {
-        Integer login = new XduAuthUtil().loginV2("21009200334", "1500418656");
-        System.out.println(login);
+    public static void test(String username,String password,List<HttpCookie> cookies,String page) throws Exception {
+        Map<String, Object> param = getLoginParamFromPage(page);
+        param.put("password", XduAesUtil.encrypt(password, String.valueOf(param.get("salt"))));
+        param.put("username", username);
+        System.out.println(param);
+        HttpResponse response =
+                HttpUtil.createPost(authTarget).setFollowRedirects(false).cookie(cookies).form(param).execute();
+        log.info("get cookie success:{}", response.getCookies());
     }
+
 
     private static HttpResponse getLoginPage() {
         HttpResponse response1 =
@@ -252,5 +253,7 @@ public class XduAuthUtil {
         hiddens.forEach(e -> body.putIfAbsent(e.attr("name"), e.attr("value")));
         body.put("salt", salt);
         return body;
+    }
+    public static void main(String[] args) throws Exception {
     }
 }
