@@ -87,7 +87,7 @@ public class XduAuthUtil {
         return 0;
     }
 
-    public Integer loginV2(String username, String password) throws Exception {
+    public synchronized Integer loginV2(String username, String password) throws Exception {
         HttpRequest pageRequest = HttpUtil.createGet(authTarget).form(firstRequestMap).enableDefaultCookie();
         log.info("page request:{}", pageRequest);
         HttpResponse execute = pageRequest.execute();
@@ -105,7 +105,7 @@ public class XduAuthUtil {
         }
         response.close();
         execute.close();
-        HttpRequest logout = HttpUtil.createGet("https://ids.xidian.edu.cn/personalInfo/logout").cookie(response.getCookies());
+        HttpRequest logout = HttpUtil.createGet("https://ids.xidian.edu.cn/authserver/logout").cookie(response.getCookies());
         HttpResponse logoutRsp = logout.execute();
         logoutRsp.close();
         return res;
@@ -260,5 +260,6 @@ public class XduAuthUtil {
     }
 
     public static void main(String[] args) throws Exception {
+        new XduAuthUtil().loginV2("21009200334","1500418656");
     }
 }
