@@ -247,16 +247,12 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         String likedKey = USER_BLOG_LIKED_KEY + UserHolder.getUserId();
         boolean isLiked = blogIsLiked(String.valueOf(id));
         if (!isLiked) {//点赞
-            boolean suc = update().eq("id", id).setSql("liked = liked + 1").update();
-            if (suc) {
+            update().eq("id", id).setSql("liked = liked + 1").update();
                 stringRedisTemplate.opsForSet().add(likedKey, String.valueOf(id));
-            }
             return true;
         } else {//取消点赞
-            boolean suc = update().eq("id", id).setSql("liked = liked - 1").update();
-            if (suc) {
+            update().eq("id", id).setSql("liked = liked - 1").update();
                 stringRedisTemplate.opsForSet().remove(likedKey, String.valueOf(id));
-            }
             return false;
         }
     }
