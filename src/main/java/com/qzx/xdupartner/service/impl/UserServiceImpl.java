@@ -61,7 +61,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //TODO 放入常量池，上传数据库图片，匿名的头像
         user.setIcon(SystemConstant.DEFAULT_ICON_URL + RandomUtil.randomInt(SystemConstant.RANDOM_ICON_MIN,
                 SystemConstant.RANDOM_ICON_MAX) +
-                ".jpg");
+                ".png");
         user.setNickName(SystemConstant.DEFAULT_NICKNAME +
                 stringRedisTemplate.opsForValue().increment(RedisConstant.DEFAULT_NICKNAME_INCREMENT));
         save(user);

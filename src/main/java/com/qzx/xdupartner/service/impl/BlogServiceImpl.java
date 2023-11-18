@@ -1,9 +1,12 @@
 package com.qzx.xdupartner.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUnit;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
@@ -24,6 +27,8 @@ import com.qzx.xdupartner.service.BlogService;
 import com.qzx.xdupartner.service.UserService;
 import com.qzx.xdupartner.util.UserHolder;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.connection.StringRedisConnection;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -58,17 +63,82 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
-    private boolean blogIsLiked(Long id) {
+    private Boolean blogIsLiked(String id) {
         Long userId = UserHolder.getUserId();
 //        log.warn(String.valueOf(userId));
         if (userId < 0) {
             return false;
         }
-        Long rank = stringRedisTemplate.opsForZSet().rank(USESR_BLOG_LIKED_KEY + userId, String.valueOf(id));
-//        log.warn(id+" isLiked:"+rank);
-        return rank != null;
+        return stringRedisTemplate.opsForSet().isMember(USESR_BLOG_LIKED_KEY + userId, (id));
     }
 
+    private Map<Object, Boolean> batchBlogIsLiked(List<String> blogIds) {
+        Long userId = UserHolder.getUserId();
+//        log.warn(String.valueOf(userId));
+        if (userId < 0) {
+            return CollectionUtil.empty(HashMap.class);
+        }
+        Map<Object, Boolean> isLiked = stringRedisTemplate.opsForSet().isMember(USESR_BLOG_LIKED_KEY + userId,
+                blogIds.toArray());
+        return isLiked;
+    }
+
+
+    private List<BlogVo> getBlogVosV2(List<Blog> records, String redisKey) {
+        if (records == null || records.size() == 0) {
+            return ListUtil.empty();
+        }
+        Set<String> viewed = stringRedisTemplate.opsForSet().members(redisKey + UserHolder.getUserId());
+        if (viewed != null) {
+            records =
+                    records.stream().filter(blog -> viewed.contains(String.valueOf(blog.getId()))).collect(Collectors.toList());
+        }
+        List<String> blogIds =
+                records.stream().map(record -> String.valueOf(record.getId())).collect(Collectors.toList());
+        executor.submit(() -> {
+            batchAddViewTimes(blogIds, UserHolder.getUserId());
+        });
+        List<String> userIds =
+                records.stream().map(record -> String.valueOf(record.getUserId())).distinct().collect(Collectors.toList());
+        Map<Long, UserVo> userVoMap =
+                userIds.stream().map(userId -> userService.getUserVoById(Long.valueOf(userId))).collect(Collectors.toMap(UserVo::getId, userVo -> userVo));
+        Map<Object, Boolean> isLikedMap = batchBlogIsLiked(blogIds);
+        return records.stream().map(blog -> {
+            BlogVo blogVo = BeanUtil.copyProperties(blog, BlogVo.class);
+            if (blog.getIsAnonymous() == 0) {
+                blogVo.setUserVo(userVoMap.get(blog.getUserId()));
+            } else {
+                UserVo anonymousVo = UserVo.getAnonymousVo();
+                blogVo.setUserVo(anonymousVo);
+            }
+            //image
+            String imageStr = blog.getImages();
+            if (StrUtil.isNotBlank(imageStr)) {
+                List<String> imageUris =
+                        Arrays.stream(imageStr.split(SystemConstant.PICTURE_CONJUNCTION)).collect(Collectors.toList());
+                blogVo.setImages(imageUris);
+            }
+            //lowTag
+            List<String> lowTagList =
+                    Arrays.stream(blog.getLowTags().split(SystemConstant.LOW_TAG_CONJUNCTION)).collect(Collectors.toList());
+            blogVo.setLowTags(lowTagList);
+            blogVo.setHighTag(blog.getHighTagId());
+            blogVo.setIsLiked(BooleanUtil.isTrue(isLikedMap.get(blog.getId())));
+            blogVo.setViewTimes(blogVo.getViewTimes());
+            return blogVo;
+        }).collect(Collectors.toList());
+    }
+
+
+    /**
+     * 判断是否显示过
+     * 判断是否点赞过
+     * 获取viewTime
+     *
+     * @param records
+     * @param redisKey
+     * @return
+     */
     private List<BlogVo> getBlogVos(List<Blog> records, String redisKey) {
         if (records == null || records.size() == 0) {
             return new ArrayList<>();
@@ -79,15 +149,15 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         stringRedisTemplate.expire(redisKey + UserHolder.getUserId(), RedisConstant.USER_BLOG_SET_TIME,
                 TimeUnit.SECONDS);
         List<BlogVo> voRecords = new ArrayList<>(MAX_PAGE_SIZE);
+        executor.submit(() -> {
+            batchAddViewTimes(Arrays.stream(idStrings).collect(Collectors.toList()), UserHolder.getUserId());
+        });
         records.forEach(blog -> {
-            executor.submit(() -> {
-                AddViewTimes(blog.getId(), UserHolder.getUserId());
-            });
             //当显示过的时候跳过
             if (viewed == null || !viewed.contains(String.valueOf(blog.getId()))) {
                 //TODO 分析lowTags
                 BlogVo blogVo = transferToBlogVo(blog);
-                String readKey = RedisConstant.BLOG_READ_KEY + blogVo.getId();
+//                String readKey = RedisConstant.BLOG_READ_KEY + blogVo.getId();
                 //TODO 浏览量统计优化
 //                blogVo.setViewTimes((int) (blogVo.getViewTimes() + stringRedisTemplate.opsForValue().increment
 //                (readKey)));
@@ -107,6 +177,20 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         long betweenDayStart = nowDate.between(DateUtil.beginOfDay(nowDate), DateUnit.SECOND);
         String pattern = ((betweenDayStart / (5 * 60)) + 1) + ":";
         stringRedisTemplate.opsForSet().add(BLOG_READ_KEY + pattern + blogId, String.valueOf(userId));
+    }
+
+    private void batchAddViewTimes(List<String> blogIds, Long userId) {
+        DateTime nowDate = DateUtil.date();
+        long betweenDayStart = nowDate.between(DateUtil.beginOfDay(nowDate), DateUnit.SECOND);
+        String pattern = ((betweenDayStart / (5 * 60)) + 1) + ":";
+        String redisKey = BLOG_READ_KEY + pattern;
+        stringRedisTemplate.executePipelined((RedisCallback<Object>) connection -> {
+            StringRedisConnection stringRedisConnection = (StringRedisConnection) connection;
+            blogIds.forEach(blogId -> {
+                stringRedisConnection.sAdd(redisKey + blogId, String.valueOf(userId));
+            });
+            return null;
+        });
     }
 
     private BlogVo transferToBlogVo(Blog blog) {
@@ -129,8 +213,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
                 Arrays.stream(blog.getLowTags().split(SystemConstant.LOW_TAG_CONJUNCTION)).collect(Collectors.toList());
         blogVo.setLowTags(lowTagList);
         blogVo.setHighTag(blog.getHighTagId());
-        boolean isLiked = blogIsLiked(blog.getId());
-        blogVo.setIsLiked(isLiked);
+//        boolean isLiked = blogIsLiked(blog.getId());
+//        blogVo.setIsLiked(isLiked);
         return blogVo;
     }
 
@@ -154,17 +238,17 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     @Override
     public boolean likeBlog(Long id) {
         String likedKey = USESR_BLOG_LIKED_KEY + UserHolder.getUserId();
-        boolean isLiked = blogIsLiked(id);
+        boolean isLiked = blogIsLiked(String.valueOf(id));
         if (!isLiked) {//点赞
             boolean suc = update().eq("id", id).setSql("liked = liked + 1").update();
             if (suc) {
-                stringRedisTemplate.opsForZSet().add(likedKey, String.valueOf(id), System.currentTimeMillis());
+                stringRedisTemplate.opsForSet().add(likedKey, String.valueOf(id));
             }
             return true;
         } else {//取消点赞
             boolean suc = update().eq("id", id).setSql("liked = liked - 1").update();
             if (suc) {
-                stringRedisTemplate.opsForZSet().remove(likedKey, String.valueOf(id));
+                stringRedisTemplate.opsForSet().remove(likedKey, String.valueOf(id));
             }
             return false;
         }
@@ -241,7 +325,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         Page<Blog> page = blogMapper.selectPage(new Page<>(current,
                 MAX_PAGE_SIZE), blogQueryWrapper);
         List<Blog> records = page.getRecords();
-        return getBlogVos(records, RedisConstant.USER_SEARCH_BLOG_SET_KEY);
+        return getBlogVosV2(records, RedisConstant.USER_SEARCH_BLOG_SET_KEY);
     }
 
     @Override
@@ -257,7 +341,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         Page<Blog> page = blogMapper.selectPage(new Page<>(current,
                 MAX_PAGE_SIZE), blogQueryWrapper);
         List<Blog> records = page.getRecords();
-        return getBlogVos(records, RedisConstant.USER_SEARCH_BLOG_SET_KEY);
+        return getBlogVosV2(records, RedisConstant.USER_SEARCH_BLOG_SET_KEY);
     }
 
     @Override
@@ -277,7 +361,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
                             MAX_PAGE_SIZE));
         }
         List<Blog> records = page.getRecords();
-        return getBlogVos(records, RedisConstant.USER_ONES_BLOG_SET_KEY);
+        return getBlogVosV2(records, RedisConstant.USER_ONES_BLOG_SET_KEY);
     }
 
 
@@ -292,7 +376,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
                 .orderByDesc("id")
                 .page(new Page<>(current, MAX_PAGE_SIZE));
         List<Blog> records = page.getRecords();
-        return getBlogVos(records, RedisConstant.USER_HOT_BLOG_SET_KEY);
+        return getBlogVosV2(records, RedisConstant.USER_HOT_BLOG_SET_KEY);
     }
 
     @Override
@@ -304,7 +388,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
                 .orderByDesc("id")
                 .page(new Page<>(current, MAX_PAGE_SIZE));
         List<Blog> records = page.getRecords();
-        return getBlogVos(records, RedisConstant.USER_NEW_BLOG_SET_KEY);
+        return getBlogVosV2(records, RedisConstant.USER_NEW_BLOG_SET_KEY);
     }
 
     @Override
@@ -334,6 +418,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
             res.addAll(records1);
         }
         res.sort(Comparator.comparingLong(Blog::getId).reversed());
-        return getBlogVos(res, RedisConstant.USER_LIKE_BLOG_SET_KEY);
+        return getBlogVosV2(res, RedisConstant.USER_LIKE_BLOG_SET_KEY);
     }
 }
