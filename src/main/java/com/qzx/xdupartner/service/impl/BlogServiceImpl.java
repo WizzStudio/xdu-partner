@@ -76,7 +76,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         Long userId = UserHolder.getUserId();
 //        log.warn(String.valueOf(userId));
         if (userId < 0) {
-            return CollectionUtil.empty(HashMap.class);
+            return new HashMap<>();
         }
         if (blogIds.isEmpty())
             return CollectionUtil.empty(HashMap.class);
@@ -91,7 +91,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
             return ListUtil.empty();
         }
         Set<String> viewed = stringRedisTemplate.opsForSet().members(redisKey + UserHolder.getUserId());
-        if (viewed != null) {
+        if (viewed != null && !viewed.isEmpty()) {
             records =
                     records.stream().filter(blog -> viewed.contains(String.valueOf(blog.getId()))).collect(Collectors.toList());
         }
@@ -102,9 +102,11 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         });
         List<String> userIds =
                 records.stream().map(record -> String.valueOf(record.getUserId())).distinct().collect(Collectors.toList());
-        stringRedisTemplate.opsForSet().add(redisKey + UserHolder.getUserId(), blogIds.toArray(new String[0]));
-        stringRedisTemplate.expire(redisKey + UserHolder.getUserId(), RedisConstant.USER_BLOG_SET_TIME,
-                TimeUnit.SECONDS);
+        if (UserHolder.getUserId() > 0) {
+            stringRedisTemplate.opsForSet().add(redisKey + UserHolder.getUserId(), blogIds.toArray(new String[0]));
+            stringRedisTemplate.expire(redisKey + UserHolder.getUserId(), RedisConstant.USER_BLOG_SET_TIME,
+                    TimeUnit.SECONDS);
+        }
         Map<Long, UserVo> userVoMap =
                 userIds.stream().map(userId -> userService.getUserVoById(Long.valueOf(userId))).collect(Collectors.toMap(UserVo::getId, userVo -> userVo));
         Map<Object, Boolean> isLikedMap = batchBlogIsLiked(blogIds);
