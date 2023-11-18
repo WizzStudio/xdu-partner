@@ -78,6 +78,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         if (userId < 0) {
             return CollectionUtil.empty(HashMap.class);
         }
+        if (blogIds.isEmpty())
+            return CollectionUtil.empty(HashMap.class);
         Map<Object, Boolean> isLiked = stringRedisTemplate.opsForSet().isMember(USESR_BLOG_LIKED_KEY + userId,
                 blogIds.toArray());
         return isLiked;
@@ -100,6 +102,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         });
         List<String> userIds =
                 records.stream().map(record -> String.valueOf(record.getUserId())).distinct().collect(Collectors.toList());
+        stringRedisTemplate.opsForSet().add(redisKey + UserHolder.getUserId(), blogIds.toArray(new String[0]));
+        stringRedisTemplate.expire(redisKey + UserHolder.getUserId(), RedisConstant.USER_BLOG_SET_TIME,
+                TimeUnit.SECONDS);
         Map<Long, UserVo> userVoMap =
                 userIds.stream().map(userId -> userService.getUserVoById(Long.valueOf(userId))).collect(Collectors.toMap(UserVo::getId, userVo -> userVo));
         Map<Object, Boolean> isLikedMap = batchBlogIsLiked(blogIds);
