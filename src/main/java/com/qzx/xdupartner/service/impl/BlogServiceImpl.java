@@ -1,7 +1,6 @@
 package com.qzx.xdupartner.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUnit;
@@ -248,11 +247,11 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         boolean isLiked = blogIsLiked(String.valueOf(id));
         if (!isLiked) {//点赞
             update().eq("id", id).setSql("liked = liked + 1").update();
-                stringRedisTemplate.opsForSet().add(likedKey, String.valueOf(id));
+            stringRedisTemplate.opsForSet().add(likedKey, String.valueOf(id));
             return true;
         } else {//取消点赞
             update().eq("id", id).setSql("liked = liked - 1").update();
-                stringRedisTemplate.opsForSet().remove(likedKey, String.valueOf(id));
+            stringRedisTemplate.opsForSet().remove(likedKey, String.valueOf(id));
             return false;
         }
     }
