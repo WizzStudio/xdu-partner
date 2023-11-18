@@ -79,7 +79,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
             return new HashMap<>();
         }
         if (blogIds.isEmpty())
-            return CollectionUtil.empty(HashMap.class);
+            return new HashMap<>();
         Map<Object, Boolean> isLiked = stringRedisTemplate.opsForSet().isMember(USER_BLOG_LIKED_KEY + userId,
                 blogIds.toArray());
         return isLiked;
