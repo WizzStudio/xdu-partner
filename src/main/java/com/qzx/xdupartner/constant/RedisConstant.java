@@ -1,7 +1,7 @@
 package com.qzx.xdupartner.constant;
 
 public class RedisConstant {
-    public static final String USESR_BLOG_LIKED_KEY = "blog:liked:";
+    public static final String USER_BLOG_LIKED_KEY = "blog:liked:";
     public static final String BLOG_READ_KEY = "blog:read:";
     public static final String USER_NEW_BLOG_SET_KEY = "user:blog:set:new:";
     public static final String USER_HOT_BLOG_SET_KEY = "user:blog:set:hot:";

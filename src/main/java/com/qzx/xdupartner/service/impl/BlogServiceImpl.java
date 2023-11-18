@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.qzx.xdupartner.constant.RedisConstant.BLOG_READ_KEY;
-import static com.qzx.xdupartner.constant.RedisConstant.USESR_BLOG_LIKED_KEY;
+import static com.qzx.xdupartner.constant.RedisConstant.USER_BLOG_LIKED_KEY;
 import static com.qzx.xdupartner.constant.SystemConstant.LIKE_PAGE_SIZE;
 import static com.qzx.xdupartner.constant.SystemConstant.MAX_PAGE_SIZE;
 
@@ -69,7 +69,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         if (userId < 0) {
             return false;
         }
-        return stringRedisTemplate.opsForSet().isMember(USESR_BLOG_LIKED_KEY + userId, (id));
+        return stringRedisTemplate.opsForSet().isMember(USER_BLOG_LIKED_KEY + userId, (id));
     }
 
     private Map<Object, Boolean> batchBlogIsLiked(List<String> blogIds) {
@@ -80,7 +80,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         }
         if (blogIds.isEmpty())
             return CollectionUtil.empty(HashMap.class);
-        Map<Object, Boolean> isLiked = stringRedisTemplate.opsForSet().isMember(USESR_BLOG_LIKED_KEY + userId,
+        Map<Object, Boolean> isLiked = stringRedisTemplate.opsForSet().isMember(USER_BLOG_LIKED_KEY + userId,
                 blogIds.toArray());
         return isLiked;
     }
@@ -242,7 +242,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
     @Override
     public boolean likeBlog(Long id) {
-        String likedKey = USESR_BLOG_LIKED_KEY + UserHolder.getUserId();
+        String likedKey = USER_BLOG_LIKED_KEY + UserHolder.getUserId();
         boolean isLiked = blogIsLiked(String.valueOf(id));
         if (!isLiked) {//点赞
             boolean suc = update().eq("id", id).setSql("liked = liked + 1").update();
