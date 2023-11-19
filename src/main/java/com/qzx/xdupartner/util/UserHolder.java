@@ -1,7 +1,9 @@
 package com.qzx.xdupartner.util;
 
+import cn.hutool.core.util.RandomUtil;
 import com.qzx.xdupartner.entity.User;
 
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
 
@@ -24,7 +26,7 @@ public class UserHolder {
     public static Long getUserId() {
         User user = getUser();
         if (user == null) {
-            return anyId.incrementAndGet();
+            return anyId.addAndGet(RandomUtil.randomInt(1));
         }
         return user.getId();
     }

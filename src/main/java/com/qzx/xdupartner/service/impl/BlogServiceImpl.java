@@ -92,7 +92,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         Set<String> viewed = stringRedisTemplate.opsForSet().members(redisKey + UserHolder.getUserId());
         if (viewed != null && !viewed.isEmpty()) {
             records =
-                    records.stream().filter(blog -> viewed.contains(String.valueOf(blog.getId()))).collect(Collectors.toList());
+                    records.stream().filter(blog -> !viewed.contains(String.valueOf(blog.getId()))).collect(Collectors.toList());
         }
         List<String> blogIds =
                 records.stream().map(record -> String.valueOf(record.getId())).collect(Collectors.toList());
@@ -101,7 +101,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         });
         List<String> userIds =
                 records.stream().map(record -> String.valueOf(record.getUserId())).distinct().collect(Collectors.toList());
-        if (UserHolder.getUserId() > 0) {
+        if (UserHolder.getUserId() > 0 && !blogIds.isEmpty()) {
             stringRedisTemplate.opsForSet().add(redisKey + UserHolder.getUserId(), blogIds.toArray(new String[0]));
             stringRedisTemplate.expire(redisKey + UserHolder.getUserId(), RedisConstant.USER_BLOG_SET_TIME,
                     TimeUnit.SECONDS);
@@ -129,7 +129,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
                     Arrays.stream(blog.getLowTags().split(SystemConstant.LOW_TAG_CONJUNCTION)).collect(Collectors.toList());
             blogVo.setLowTags(lowTagList);
             blogVo.setHighTag(blog.getHighTagId());
-            blogVo.setIsLiked(BooleanUtil.isTrue(isLikedMap.get(blog.getId())));
+            blogVo.setIsLiked(BooleanUtil.isTrue(isLikedMap.get(String.valueOf(blog.getId()))));
             blogVo.setViewTimes(blogVo.getViewTimes());
             return blogVo;
         }).collect(Collectors.toList());
@@ -194,6 +194,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
             StringRedisConnection stringRedisConnection = (StringRedisConnection) connection;
             blogIds.forEach(blogId -> {
                 stringRedisConnection.sAdd(redisKey + blogId, String.valueOf(userId));
+                stringRedisConnection.expire(redisKey + blogId, 6 * 60);
             });
             return null;
         });
