@@ -101,8 +101,8 @@ public class ControllerExceptionAdvice {
 
     @ExceptionHandler(ApiException.class)
     public ResultVo APIExceptionHandler(ApiException e) {
-//        log.error(e.getMessage(), e);
-        return new ResultVo(e.getCode(), e.getMsg(), e.getMessage());
+        log.error(e.getMessage(), e);
+        return new ResultVo(e.getCode(), e.getMessage(), null);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
