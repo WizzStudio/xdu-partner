@@ -181,8 +181,8 @@ public class UserController {
                         .set(RedisConstant.LOGIN_PREFIX + user.getId(), JSONUtil.toJsonStr(user),
                                 RedisConstant.LOGIN_VALID_TTL,
                                 TimeUnit.HOURS);
-//                res.put("token", JwtUtil.createJWT(String.valueOf(user.getId())));
-                res.put("token", "已单独交付");
+                res.put("token", JwtUtil.createJWT(String.valueOf(user.getId())));
+                //res.put("token", "已单独交付");
                 res.put("userId", user.getId());
                 return res;
             }
