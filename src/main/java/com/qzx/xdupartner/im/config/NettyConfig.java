@@ -32,8 +32,6 @@ public class NettyConfig {
 
     @Resource
     private StatusHandler statusHandler;
-//    @Resource
-//    private WebsocketHandler websocketHandler;
 
     @Bean
     public EventLoopGroup bossGroup() {
@@ -53,7 +51,6 @@ public class NettyConfig {
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
-//                        ch.pipeline().addLast(nettyServerHandler);
                         ch.pipeline()
 
                                 .addLast(new HttpServerCodec())
