@@ -2,6 +2,8 @@ package com.qzx.xdupartner.controller;
 
 
 import com.qzx.xdupartner.entity.Constellation;
+import com.qzx.xdupartner.entity.vo.ResultCode;
+import com.qzx.xdupartner.entity.vo.ResultVo;
 import com.qzx.xdupartner.exception.ApiException;
 import com.qzx.xdupartner.service.ConstellationService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,17 +29,17 @@ public class ConstellationController {
     private ConstellationService constellationService;
 
     @GetMapping(value = "/{id}")
-    public Constellation constellationInfo(@PathVariable int id) {
+    public ResultVo<Constellation> constellationInfo(@PathVariable int id) {
         Constellation constellation = constellationService.getById(id);
         if (constellation == null) {
-            throw new ApiException("mbti编号不存在");
+            return new ResultVo<>(ResultCode.VALIDATE_ERROR,null);
         }
-        return constellation;
+        return new ResultVo<>(ResultCode.SUCCESS, constellation);
     }
 
     @GetMapping(value = "/all")
-    public List<Constellation> constellations() {
-        return constellationService.list();
+    public ResultVo<List<Constellation>> constellations() {
+        return new ResultVo<>(ResultCode.SUCCESS, constellationService.list());
     }
 }
 

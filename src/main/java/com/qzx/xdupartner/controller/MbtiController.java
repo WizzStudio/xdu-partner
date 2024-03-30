@@ -2,6 +2,8 @@ package com.qzx.xdupartner.controller;
 
 
 import com.qzx.xdupartner.entity.Mbti;
+import com.qzx.xdupartner.entity.vo.ResultCode;
+import com.qzx.xdupartner.entity.vo.ResultVo;
 import com.qzx.xdupartner.exception.ApiException;
 import com.qzx.xdupartner.service.MbtiService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,12 +29,12 @@ public class MbtiController {
     private MbtiService mbtiService;
 
     @GetMapping(value = "/{id}")
-    public Mbti mbtiInfo(@PathVariable int id) {
+    public ResultVo<Mbti> mbtiInfo(@PathVariable int id) {
         Mbti mbti = mbtiService.getById(id);
         if (mbti == null) {
-            throw new ApiException("MBTI编号不存在");
+            return new ResultVo<>(ResultCode.VALIDATE_ERROR, mbti);
         }
-        return mbti;
+        return new ResultVo<>(ResultCode.SUCCESS, mbti);
     }
 
     @GetMapping(value = "/all")

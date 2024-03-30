@@ -7,6 +7,8 @@ import com.aliyun.oss.common.utils.BinaryUtil;
 import com.aliyun.oss.model.MatchMode;
 import com.aliyun.oss.model.PolicyConditions;
 import com.qzx.xdupartner.constant.RedisConstant;
+import com.qzx.xdupartner.entity.vo.ResultCode;
+import com.qzx.xdupartner.entity.vo.ResultVo;
 import com.qzx.xdupartner.schedule.ScheduleMission;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,7 +50,7 @@ public class FileStoreController {
 
     @CrossOrigin
     @GetMapping("/oss/policy")
-    public Map<String, String> policy() {
+    public ResultVo<Map<String, String>> policy() {
         String endpoint = "oss-cn-hangzhou.aliyuncs.com";
         String host = "https://" + bucket + "." + endpoint;
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -76,7 +78,7 @@ public class FileStoreController {
             respMap.put("dir", dir);
             respMap.put("host", host);
             respMap.put("expire", String.valueOf(expireEndTime / 1000));
-            return respMap;
+            return new ResultVo<>(ResultCode.SUCCESS, respMap);
         } catch (Exception e) {
             log.error(e.getMessage());
         }
