@@ -72,13 +72,39 @@ public class UserInfoServiceImpl implements UserInfoService {
             return null;
         }
         //TODO 可以增加自己的逻辑，关联业务相关数据
-        User  user = userService.insertNewUser(wxMaJscode2SessionResult.getOpenid(), schoolInfoDto.getStuId());
+        User user = userService.insertNewUser(wxMaJscode2SessionResult.getOpenid(), schoolInfoDto.getStuId());
         user.setSessionKey(session.get().getSessionKey());
-        User finalUser = user;
-        executor.submit(() -> stringRedisTemplate.opsForValue().set(RedisConstant.LOGIN_PREFIX + session.get().getSessionKey(), JSONUtil.toJsonStr(finalUser),
+        stringRedisTemplate.opsForValue().set(RedisConstant.LOGIN_PREFIX + session.get().getSessionKey(),
+                JSONUtil.toJsonStr(user),
                 RedisConstant.LOGIN_VALID_TTL,
-                TimeUnit.DAYS));
+                TimeUnit.DAYS);
         return wxMaJscode2SessionResult;
+    }
+
+    @Override
+    public WxMaJscode2SessionResult login(String code) {
+        try {
+            WxMaJscode2SessionResult session = wxMaService.getUserService().getSessionInfo(code);
+            log.info(session.getSessionKey());
+            log.info(session.getOpenid());
+            //TODO 可以增加自己的逻辑，关联业务相关数据
+            User user = userService.lambdaQuery().eq(User::getOpenId, session.getOpenid()).one();
+            if (ObjectUtil.isNull(user)) {
+                return null;
+            }
+            user.setSessionKey(session.getSessionKey());
+            User finalUser = user;
+            stringRedisTemplate.opsForValue().set(RedisConstant.LOGIN_PREFIX + session.getSessionKey(),
+                    JSONUtil.toJsonStr(finalUser),
+                    RedisConstant.LOGIN_VALID_TTL,
+                    TimeUnit.DAYS);
+            return session;
+        } catch (WxErrorException e) {
+            log.error(e.getMessage(), e);
+            return null;
+        } finally {
+            WxMaConfigHolder.remove();//清理ThreadLocal
+        }
     }
 
     @Override

@@ -25,8 +25,17 @@ public class WechatController {
      * 注册接口
      */
     @GetMapping("/register")
-    public R<WxMaJscode2SessionResult> registor(@RequestParam("code") String code, @RequestParam("chsiCode") String chsiCode) {
+    public R<WxMaJscode2SessionResult> registor(@RequestParam("code") String code,
+                                                @RequestParam("chsiCode") String chsiCode) {
         return new R<>(ResultCode.SUCCESS, userInfoService.register(code, chsiCode));
+    }
+
+    /**
+     * login接口
+     */
+    @GetMapping("/login")
+    public R<WxMaJscode2SessionResult> registor(@RequestParam("code") String code) {
+        return new R<>(ResultCode.SUCCESS, userInfoService.login(code));
     }
 
     /**

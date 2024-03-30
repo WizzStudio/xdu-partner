@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class UserHolder {
     private static final ThreadLocal<User> tl = new ThreadLocal<>();
-    private static AtomicLong anyId = new AtomicLong(Long.MIN_VALUE);
+    private static final AtomicLong anyId = new AtomicLong(Long.MIN_VALUE);
 
     public static void saveUser(User user) {
         tl.set(user);

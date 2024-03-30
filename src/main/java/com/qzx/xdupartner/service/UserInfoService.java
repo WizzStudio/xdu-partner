@@ -6,21 +6,10 @@ import com.qzx.xdupartner.entity.dto.WxUserInfo;
 
 public interface UserInfoService {
 
-    /**
-     * 登录
-     *
-     * @param code code
-     * @param chsiCode 学信网认证码
-     * @return WxMaJscode2SessionResult
-     */
     WxMaJscode2SessionResult register(String code, String chsiCode);
 
-    /**
-     * 获取用户信息
-     *
-     * @param userInfo 包含一些加密的信息
-     * @return WxMaUserInfo
-     */
+    WxMaJscode2SessionResult login(String code);
+
     WxMaUserInfo getUserInfo(WxUserInfo userInfo);
 }
 

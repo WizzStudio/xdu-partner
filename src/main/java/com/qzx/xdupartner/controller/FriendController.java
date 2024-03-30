@@ -95,7 +95,8 @@ public class FriendController {
     //查看自己的所有好友
     public R<List<UserVo>> allFriends() {
         List<Friend> friends = friendService.query().eq("user_id", UserHolder.getUserId()).list();
-        return new R<>(ResultCode.SUCCESS, friends.stream().filter(f -> friendService.judgeIfFriend(f.getFriendId())).map(friend -> {
+        return new R<>(ResultCode.SUCCESS,
+                friends.stream().filter(f -> friendService.judgeIfFriend(f.getFriendId())).map(friend -> {
             UserVo userVoById = userService.getUserVoById(friend.getFriendId());
             String alterName = friend.getAlterName();
             if (StrUtil.isNotBlank(alterName)) {

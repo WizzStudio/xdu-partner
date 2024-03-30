@@ -22,6 +22,7 @@ import javax.annotation.Resource;
 public class WebsocketHandler extends SimpleChannelInboundHandler<TextWebSocketFrame> {
     @Resource
     ConnectHandler connectHandler;
+
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if (evt instanceof IdleStateEvent) {

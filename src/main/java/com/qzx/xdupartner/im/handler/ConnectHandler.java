@@ -19,7 +19,8 @@ public class ConnectHandler {
     StringRedisTemplate stringRedisTemplate;
 
     public void execute(ReqMessage reqMessage, ChannelHandlerContext ctx) {
-        User user = JSONUtil.toBean(stringRedisTemplate.opsForValue().get(RedisConstant.LOGIN_PREFIX + reqMessage.getToken()), User.class);
+        User user =
+                JSONUtil.toBean(stringRedisTemplate.opsForValue().get(RedisConstant.LOGIN_PREFIX + reqMessage.getToken()), User.class);
         if (!reqMessage.getFromId().equals(user.getId())) {
             ctx.channel().writeAndFlush(RspMessage.getSystemTextFrame("token有误"));
 

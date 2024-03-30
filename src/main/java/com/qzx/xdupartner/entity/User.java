@@ -80,10 +80,10 @@ public class User implements Serializable {
      */
     private String openId;
 
-   /**
+    /**
      * sessionKey
      */
-   @TableField(exist = false)
+    @TableField(exist = false)
     private String sessionKey;
 
     /**
