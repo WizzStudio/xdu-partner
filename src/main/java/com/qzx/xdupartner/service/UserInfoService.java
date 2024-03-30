@@ -13,7 +13,7 @@ public interface UserInfoService {
      * @param chsiCode 学信网认证码
      * @return WxMaJscode2SessionResult
      */
-    WxMaJscode2SessionResult login(String code,String chsiCode);
+    WxMaJscode2SessionResult register(String code, String chsiCode);
 
     /**
      * 获取用户信息

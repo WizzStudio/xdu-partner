@@ -44,7 +44,7 @@ public class UserInfoServiceImpl implements UserInfoService {
      * @return WxMaJscode2SessionResult
      */
     @Override
-    public WxMaJscode2SessionResult login(String code, String chsiCode) {
+    public WxMaJscode2SessionResult register(String code, String chsiCode) {
         Future<SchoolInfoDto> schoolInfoDtoFuture = executor.submit(() -> VerifyUtil.visitData(chsiCode));
         AtomicReference<WxMaJscode2SessionResult> session = new AtomicReference<>();
         Future<AtomicReference<WxMaJscode2SessionResult>> sessionResultFuture = executor.submit(() -> {
@@ -72,10 +72,7 @@ public class UserInfoServiceImpl implements UserInfoService {
             return null;
         }
         //TODO 可以增加自己的逻辑，关联业务相关数据
-        User user = userService.lambdaQuery().eq(User::getOpenId, session.get().getOpenid()).one();
-        if (ObjectUtil.isNull(user)) {
-            user = userService.insertNewUser(user.getOpenId(), user.getStuId());
-        }
+        User  user = userService.insertNewUser(wxMaJscode2SessionResult.getOpenid(), schoolInfoDto.getStuId());
         user.setSessionKey(session.get().getSessionKey());
         User finalUser = user;
         executor.submit(() -> stringRedisTemplate.opsForValue().set(RedisConstant.LOGIN_PREFIX + session.get().getSessionKey(), JSONUtil.toJsonStr(finalUser),

@@ -22,11 +22,11 @@ public class WechatController {
     private final UserInfoService userInfoService;
 
     /**
-     * 登陆接口
+     * 注册接口
      */
-    @GetMapping("/login")
-    public R<WxMaJscode2SessionResult> login(@RequestParam("code") String code, @RequestParam("chsiCode") String chsiCode) {
-        return new R<>(ResultCode.SUCCESS, userInfoService.login(code, chsiCode));
+    @GetMapping("/register")
+    public R<WxMaJscode2SessionResult> registor(@RequestParam("code") String code, @RequestParam("chsiCode") String chsiCode) {
+        return new R<>(ResultCode.SUCCESS, userInfoService.register(code, chsiCode));
     }
 
     /**
