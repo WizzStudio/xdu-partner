@@ -7,8 +7,8 @@ import lombok.Getter;
 
 @Getter
 public class ApiException extends RuntimeException {
-    private int code;
-    private String msg;
+    private final int code;
+    private final String msg;
 
     // 手动设置异常
     public ApiException(StatusCode statusCode, String message) {

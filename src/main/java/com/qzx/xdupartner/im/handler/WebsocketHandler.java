@@ -6,16 +6,22 @@ import com.qzx.xdupartner.constant.SystemConstant;
 import com.qzx.xdupartner.entity.ReqMessage;
 import com.qzx.xdupartner.entity.RspMessage;
 import com.qzx.xdupartner.im.OnlineUserHolder;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.timeout.IdleStateEvent;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
 
 @Slf4j
-//@Component
-//@ChannelHandler.Sharable
+@Component
+@ChannelHandler.Sharable
 public class WebsocketHandler extends SimpleChannelInboundHandler<TextWebSocketFrame> {
+    @Resource
+    ConnectHandler connectHandler;
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if (evt instanceof IdleStateEvent) {
@@ -46,10 +52,10 @@ public class WebsocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
         }
         switch (reqMessage.getCommand()) {
             case SystemConstant.CommandType.CONNECT:
-                ConnectHandler.excute(reqMessage, ctx);
+                connectHandler.execute(reqMessage, ctx);
                 break;
             case SystemConstant.CommandType.PING:
-                PingHandler.excute(reqMessage, ctx);
+                PingHandler.execute(reqMessage, ctx);
                 break;
             default:
                 ctx.channel().writeAndFlush(RspMessage.getSystemTextFrame("不支持的消息类型"));

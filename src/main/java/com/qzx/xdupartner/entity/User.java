@@ -76,6 +76,17 @@ public class User implements Serializable {
     private String myDescription;
 
     /**
+     * openid
+     */
+    private String openId;
+
+   /**
+     * sessionKey
+     */
+   @TableField(exist = false)
+    private String sessionKey;
+
+    /**
      * 需求倾向
      */
     private Integer highTag;

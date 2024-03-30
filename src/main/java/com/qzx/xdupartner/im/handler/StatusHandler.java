@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @ChannelHandler.Sharable
 //在线人数
 public class StatusHandler extends ChannelInboundHandlerAdapter {
-    private static AtomicInteger count = new AtomicInteger(0);
+    private static final AtomicInteger count = new AtomicInteger(0);
 
     public static int getCount() {
         return count.intValue();

@@ -45,14 +45,14 @@ public class MessageController {
         return message;
     }
 
-        @ApiOperation("")
-@GetMapping(value = "/connect", produces = "application/json;charset=utf-8")
+    @ApiOperation("")
+    @GetMapping(value = "/connect", produces = "application/json;charset=utf-8")
     public List<MessageVo> connect() {
         return messageService.connect();
     }
 
-        @ApiOperation("")
-@PostMapping(value = "/sendMessage", produces = "application/json;charset=utf-8")
+    @ApiOperation("")
+    @PostMapping(value = "/sendMessage", produces = "application/json;charset=utf-8")
     public String send(@Validated @RequestBody @NotNull ReqMessage reqMessage) {
         Message message = transferToMessage(reqMessage);
         messageService.sendMessage(message);
@@ -60,8 +60,8 @@ public class MessageController {
     }
 
 
-        @ApiOperation("")
-@PostMapping(value = "/readMessage", produces = "application/json;charset=utf-8")
+    @ApiOperation("")
+    @PostMapping(value = "/readMessage", produces = "application/json;charset=utf-8")
     public String read(@Validated @RequestParam @NotNull Long fromId,
                        @Validated @RequestParam @NotNull Long messageId) {
         stringRedisTemplate.delete(UserHolder.getUserId() + RedisConstant.OFFLINE_MESSAGE + fromId);
@@ -71,8 +71,8 @@ public class MessageController {
         return "消息已读";
     }
 
-        @ApiOperation("")
-@PostMapping(value = "/historyMessage", produces = "application/json;charset=utf-8")
+    @ApiOperation("")
+    @PostMapping(value = "/historyMessage", produces = "application/json;charset=utf-8")
     public List<RspMessage> history(@Validated @RequestParam @NotNull Long fromId
             ,
                                     @Validated @RequestParam @NotNull Long messageId

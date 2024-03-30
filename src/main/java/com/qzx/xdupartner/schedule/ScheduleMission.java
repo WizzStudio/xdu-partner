@@ -92,7 +92,7 @@ public class ScheduleMission {
     public void update() {
         String dictString = stringRedisTemplate.opsForValue().get(RedisConstant.DICT_KEY);
         File dictWords = FileUtil.newFile("/data/tmp.txt");
-        FileUtil.writeUtf8String("" + dictString, dictWords);
+        FileUtil.writeUtf8String(dictString, dictWords);
         WordDictionary.getInstance().loadUserDict(dictWords.toPath(), StandardCharsets.UTF_8);
         JiebaSegmenter segmenter = new JiebaSegmenter();
         log.info("开始执行lowTag分析");

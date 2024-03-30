@@ -29,7 +29,7 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
     public boolean judgeIfFriend(Long otherId) {
         String isFriendKey =
                 stringRedisTemplate.opsForValue()
-                        .getAndExpire("" + UserHolder.getUserId() + RedisConstant.IS_FRIEND + otherId,
+                        .getAndExpire(UserHolder.getUserId() + RedisConstant.IS_FRIEND + otherId,
                                 RedisConstant.IS_FRIEND_TTL,
                                 TimeUnit.MINUTES);
         if ("1".equals(isFriendKey)) {
@@ -43,7 +43,7 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
         }
         boolean isFriend = count1 + count2 >= 2;
         if (isFriend) {
-            stringRedisTemplate.opsForValue().set("" + UserHolder.getUserId() + RedisConstant.IS_FRIEND + otherId, "1"
+            stringRedisTemplate.opsForValue().set(UserHolder.getUserId() + RedisConstant.IS_FRIEND + otherId, "1"
                     , RedisConstant.IS_FRIEND_TTL, TimeUnit.MINUTES);
         }
         return isFriend;

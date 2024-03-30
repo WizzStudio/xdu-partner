@@ -1,7 +1,7 @@
 package com.qzx.xdupartner.intercepter;
 
 import cn.hutool.json.JSONUtil;
-import com.qzx.xdupartner.entity.vo.ResultVo;
+import com.qzx.xdupartner.entity.vo.R;
 import com.qzx.xdupartner.util.UserHolder;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +20,7 @@ public class LoginInterceptor implements HandlerInterceptor {
         if (UserHolder.getUser() == null) {
             response.setStatus(401);
             response.setCharacterEncoding("utf-8");
-            response.getWriter().write(JSONUtil.toJsonStr(new ResultVo(2000, "登录过期", "登录过期")));
+            response.getWriter().write(JSONUtil.toJsonStr(new R(2000, "登录过期", "登录过期")));
             return false;
         }
         return true;

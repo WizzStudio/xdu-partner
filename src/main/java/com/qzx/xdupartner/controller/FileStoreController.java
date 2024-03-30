@@ -7,8 +7,8 @@ import com.aliyun.oss.common.utils.BinaryUtil;
 import com.aliyun.oss.model.MatchMode;
 import com.aliyun.oss.model.PolicyConditions;
 import com.qzx.xdupartner.constant.RedisConstant;
+import com.qzx.xdupartner.entity.vo.R;
 import com.qzx.xdupartner.entity.vo.ResultCode;
-import com.qzx.xdupartner.entity.vo.ResultVo;
 import com.qzx.xdupartner.schedule.ScheduleMission;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.constraints.NotBlank;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -54,7 +55,7 @@ public class FileStoreController {
     @CrossOrigin
     @ApiOperation("")
     @GetMapping("/oss/policy")
-    public ResultVo<Map<String, String>> policy() {
+    public R<Map<String, String>> policy() {
         String endpoint = "oss-cn-hangzhou.aliyuncs.com";
         String host = "https://" + bucket + "." + endpoint;
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -71,7 +72,7 @@ public class FileStoreController {
             policyConds.addConditionItem(MatchMode.StartWith, PolicyConditions.COND_KEY, dir);
 
             String postPolicy = ossClient.generatePostPolicy(expiration, policyConds);
-            byte[] binaryData = postPolicy.getBytes("utf-8");
+            byte[] binaryData = postPolicy.getBytes(StandardCharsets.UTF_8);
             String encodedPolicy = BinaryUtil.toBase64String(binaryData);
             String postSignature = ossClient.calculatePostSignature(postPolicy);
 
@@ -82,12 +83,13 @@ public class FileStoreController {
             respMap.put("dir", dir);
             respMap.put("host", host);
             respMap.put("expire", String.valueOf(expireEndTime / 1000));
-            return new ResultVo<>(ResultCode.SUCCESS, respMap);
+            return new R<>(ResultCode.SUCCESS, respMap);
         } catch (Exception e) {
             log.error(e.getMessage());
         }
         return null;
     }
+
     @ApiOperation("")
     @PostMapping(value = "/insertDict", produces = "application/json;charset=utf-8")
     public void insertDict(@Validated @NotBlank(message = "词语不能为空") @RequestParam String keyword) {
