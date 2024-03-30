@@ -17,5 +17,5 @@ public interface UserService extends IService<User> {
 
     UserVo getUserVoById(Long userId);
 
-    User insertNewUser(String openId);
+    User insertNewUser(String openId, String stuId);
 }

@@ -25,8 +25,8 @@ public class WechatController {
      * 登陆接口
      */
     @GetMapping("/login")
-    public R<WxMaJscode2SessionResult> login(@RequestParam("code") String code) {
-        return new R<>(ResultCode.SUCCESS, userInfoService.login(code));
+    public R<WxMaJscode2SessionResult> login(@RequestParam("code") String code, @RequestParam("chsiCode") String chsiCode) {
+        return new R<>(ResultCode.SUCCESS, userInfoService.login(code, chsiCode));
     }
 
     /**

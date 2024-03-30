@@ -2,7 +2,7 @@ package com.qzx.xdupartner.entity;
 
 import cn.hutool.json.JSONUtil;
 import com.qzx.xdupartner.constant.SystemConstant;
-import com.qzx.xdupartner.util.JwtUtil;
+import com.qzx.xdupartner.util.UserHolder;
 import lombok.Data;
 
 import javax.validation.constraints.Size;
@@ -32,7 +32,7 @@ public class ReqMessage implements Serializable {
     public static void main(String[] args) {
         ReqMessage reqMessage = new ReqMessage();
         reqMessage.setCommand(SystemConstant.CommandType.PING);
-        reqMessage.setToken(JwtUtil.createJWT("1"));
+        reqMessage.setToken(UserHolder.getUserSessionKey());
         reqMessage.setContent("ping");
         reqMessage.setFromId(1L);
         System.out.println(JSONUtil.toJsonStr(reqMessage));

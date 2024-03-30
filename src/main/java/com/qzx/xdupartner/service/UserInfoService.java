@@ -10,9 +10,10 @@ public interface UserInfoService {
      * 登录
      *
      * @param code code
+     * @param chsiCode 学信网认证码
      * @return WxMaJscode2SessionResult
      */
-    WxMaJscode2SessionResult login(String code);
+    WxMaJscode2SessionResult login(String code,String chsiCode);
 
     /**
      * 获取用户信息

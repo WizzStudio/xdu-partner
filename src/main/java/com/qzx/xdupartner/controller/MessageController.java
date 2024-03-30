@@ -7,6 +7,9 @@ import com.qzx.xdupartner.entity.Message;
 import com.qzx.xdupartner.entity.ReqMessage;
 import com.qzx.xdupartner.entity.RspMessage;
 import com.qzx.xdupartner.entity.vo.MessageVo;
+import com.qzx.xdupartner.entity.vo.R;
+import com.qzx.xdupartner.entity.vo.ResultCode;
+import com.qzx.xdupartner.service.FriendService;
 import com.qzx.xdupartner.service.MessageService;
 import com.qzx.xdupartner.util.UserHolder;
 import io.swagger.annotations.Api;
@@ -31,7 +34,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/message")
 public class MessageController {
-
+    @Resource
+    private FriendService friendService;
     @Resource
     private MessageService messageService;
     @Resource
@@ -53,31 +57,37 @@ public class MessageController {
 
     @ApiOperation("")
     @PostMapping(value = "/sendMessage", produces = "application/json;charset=utf-8")
-    public String send(@Validated @RequestBody @NotNull ReqMessage reqMessage) {
+    public R<String> send(@Validated @RequestBody @NotNull ReqMessage reqMessage) {
         Message message = transferToMessage(reqMessage);
+        Integer messageCount =
+                messageService.lambdaQuery().eq(Message::getFromId, UserHolder.getUserId()).eq(Message::getToId,
+                        reqMessage.getToId()).count();
+        if (messageCount == 1 && friendService.judgeIfFriend(reqMessage.getToId())) {
+            return new R<>(ResultCode.FAILED, "未成为好友前只能发送一条消息~");
+        }
         messageService.sendMessage(message);
-        return "发送成功";
+        return new R<>(ResultCode.SUCCESS, "发送成功");
     }
 
 
     @ApiOperation("")
     @PostMapping(value = "/readMessage", produces = "application/json;charset=utf-8")
-    public String read(@Validated @RequestParam @NotNull Long fromId,
-                       @Validated @RequestParam @NotNull Long messageId) {
+    public R<String> read(@Validated @RequestParam @NotNull Long fromId,
+                          @Validated @RequestParam @NotNull Long messageId) {
         stringRedisTemplate.delete(UserHolder.getUserId() + RedisConstant.OFFLINE_MESSAGE + fromId);
         boolean update = messageService.update().eq("from_id", fromId).eq("to_id", UserHolder.getUserId()).le("id",
                 messageId
         ).set("is_received", 1).update();
-        return "消息已读";
+        return new R<>(ResultCode.SUCCESS, "消息已读");
     }
 
     @ApiOperation("")
     @PostMapping(value = "/historyMessage", produces = "application/json;charset=utf-8")
-    public List<RspMessage> history(@Validated @RequestParam @NotNull Long fromId
+    public R<List<RspMessage>> history(@Validated @RequestParam @NotNull Long fromId
             ,
-                                    @Validated @RequestParam @NotNull Long messageId
+                                       @Validated @RequestParam @NotNull Long messageId
     ) {
-        return messageService.query10HistoryBellowEqualId(fromId, messageId);
+        return new R<>(ResultCode.SUCCESS, messageService.query10HistoryBellowEqualId(fromId, messageId));
     }
 }
 
