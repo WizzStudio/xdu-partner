@@ -1,4 +1,4 @@
-package com.qzx.xdupartner.schedule;
+package com.qzx.xdupartner.service.impl;
 
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUnit;
@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
@@ -31,7 +32,7 @@ import java.util.stream.Collectors;
 import static com.qzx.xdupartner.constant.RedisConstant.BLOG_READ_KEY;
 
 @Slf4j
-@Component
+@Service
 public class ScheduleMission {
     private static final ExecutorService executor = Executors.newFixedThreadPool(10);
     @Resource
@@ -40,11 +41,6 @@ public class ScheduleMission {
     private BlogMapper blogMapper;
     @Resource
     private StringRedisTemplate stringRedisTemplate;
-
-    @PostConstruct
-    public void init() throws IOException {
-        update();
-    }
 
     @Scheduled(cron = "0 0 4 * * ?")
 //    @Scheduled(cron = "0/5 0/1 * * * ?")

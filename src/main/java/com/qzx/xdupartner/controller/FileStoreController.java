@@ -9,7 +9,7 @@ import com.aliyun.oss.model.PolicyConditions;
 import com.qzx.xdupartner.constant.RedisConstant;
 import com.qzx.xdupartner.entity.vo.R;
 import com.qzx.xdupartner.entity.vo.ResultCode;
-import com.qzx.xdupartner.schedule.ScheduleMission;
+import com.qzx.xdupartner.service.impl.ScheduleMission;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
