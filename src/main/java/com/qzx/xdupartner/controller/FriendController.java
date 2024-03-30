@@ -5,10 +5,9 @@ import cn.hutool.core.util.StrUtil;
 import com.qzx.xdupartner.entity.Friend;
 import com.qzx.xdupartner.entity.Message;
 import com.qzx.xdupartner.entity.enumeration.MessageType;
+import com.qzx.xdupartner.entity.vo.R;
 import com.qzx.xdupartner.entity.vo.ResultCode;
-import com.qzx.xdupartner.entity.vo.ResultVo;
 import com.qzx.xdupartner.entity.vo.UserVo;
-import com.qzx.xdupartner.exception.ApiException;
 import com.qzx.xdupartner.service.FriendService;
 import com.qzx.xdupartner.service.MessageService;
 import com.qzx.xdupartner.service.UserService;
@@ -42,13 +41,13 @@ public class FriendController {
     @Resource
     private MessageService messageService;
 
-        @ApiOperation("")
-@PostMapping(value = "/makeFriend", produces = "application/json;charset=utf-8")
-    public ResultVo<String> makeFriend(@Validated @RequestParam @NotNull Long friendId,
-                             @Validated @RequestParam @NotNull String message) {
+    @ApiOperation("")
+    @PostMapping(value = "/makeFriend", produces = "application/json;charset=utf-8")
+    public R<String> makeFriend(@Validated @RequestParam @NotNull Long friendId,
+                                @Validated @RequestParam @NotNull String message) {
         boolean ifFriend = friendService.judgeIfFriend(friendId);
         if (ifFriend) {
-            return new ResultVo<>(ResultCode.VALIDATE_ERROR, "你们已经是好友啦，请勿重复添加哟！");
+            return new R<>(ResultCode.VALIDATE_ERROR, "你们已经是好友啦，请勿重复添加哟！");
         } else {
             Integer count =
                     friendService.query().eq("user_id", UserHolder.getUserId()).eq("friend_id", friendId).count();
@@ -63,15 +62,15 @@ public class FriendController {
                 friend.setFriendId(friendId);
                 friendService.save(friend);
             } else {
-                return new ResultVo<>(ResultCode.VALIDATE_ERROR, "你已发送过好友请求");
+                return new R<>(ResultCode.VALIDATE_ERROR, "你已发送过好友请求");
             }
         }
-        return new ResultVo<>(ResultCode.SUCCESS, "发送好友请求成功！");
+        return new R<>(ResultCode.SUCCESS, "发送好友请求成功！");
     }
 
-        @ApiOperation("")
-@PostMapping(value = "/acceptFriend", produces = "application/json;charset=utf-8")
-    public ResultVo<String> acceptFriend(@Validated @RequestParam @NotNull Long friendId, @RequestParam String alterName) {
+    @ApiOperation("")
+    @PostMapping(value = "/acceptFriend", produces = "application/json;charset=utf-8")
+    public R<String> acceptFriend(@Validated @RequestParam @NotNull Long friendId, @RequestParam String alterName) {
         boolean isFriend = friendService.judgeIfFriend(friendId);
         if (UserHolder.getUserId().equals(friendId) || isFriend) {
             throw new RuntimeException("你们之前就是好友了,请勿重复添加哟！");
@@ -85,18 +84,18 @@ public class FriendController {
             entity.setFriendId(friendId);
             entity.setAlterName(alterName);
             friendService.save(entity);
-            return new ResultVo<>(ResultCode.SUCCESS, "你们已经是好友啦");
+            return new R<>(ResultCode.SUCCESS, "你们已经是好友啦");
         } else {
-            return new ResultVo<>(ResultCode.VALIDATE_ERROR, "对方未曾发送好友申请");
+            return new R<>(ResultCode.VALIDATE_ERROR, "对方未曾发送好友申请");
         }
     }
 
-        @ApiOperation("")
-@GetMapping(value = "/allFriends", produces = "application/json;charset=utf-8")
+    @ApiOperation("")
+    @GetMapping(value = "/allFriends", produces = "application/json;charset=utf-8")
     //查看自己的所有好友
-    public ResultVo<List<UserVo>> allFriends() {
+    public R<List<UserVo>> allFriends() {
         List<Friend> friends = friendService.query().eq("user_id", UserHolder.getUserId()).list();
-        return new ResultVo<>(ResultCode.SUCCESS, friends.stream().filter(f -> friendService.judgeIfFriend(f.getFriendId())).map(friend -> {
+        return new R<>(ResultCode.SUCCESS, friends.stream().filter(f -> friendService.judgeIfFriend(f.getFriendId())).map(friend -> {
             UserVo userVoById = userService.getUserVoById(friend.getFriendId());
             String alterName = friend.getAlterName();
             if (StrUtil.isNotBlank(alterName)) {
@@ -106,16 +105,16 @@ public class FriendController {
         }).collect(Collectors.toList()));
     }
 
-        @ApiOperation("")
-@PostMapping(value = "/changeFriendAlterName", produces = "application/json;charset=utf-8")
-    public ResultVo<String> changeFriendAlterName(@Validated @RequestParam @NotNull Long friendId,
-                                        @RequestParam String alterName) {
+    @ApiOperation("")
+    @PostMapping(value = "/changeFriendAlterName", produces = "application/json;charset=utf-8")
+    public R<String> changeFriendAlterName(@Validated @RequestParam @NotNull Long friendId,
+                                           @RequestParam String alterName) {
         if ("".equals(alterName)) {
-            return new ResultVo<>(ResultCode.VALIDATE_ERROR,"备注不能为空");
+            return new R<>(ResultCode.VALIDATE_ERROR, "备注不能为空");
         }
         boolean update = friendService.update().eq("user_id", UserHolder.getUserId()).eq("friend_id", friendId).set(
                 "alter_name", alterName).update();
-        return new ResultVo<>(ResultCode.SUCCESS, "修改成功");
+        return new R<>(ResultCode.SUCCESS, "修改成功");
     }
 }
 

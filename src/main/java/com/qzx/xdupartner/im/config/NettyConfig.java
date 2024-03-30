@@ -26,6 +26,8 @@ import java.net.InetSocketAddress;
 @Configuration
 @Slf4j
 public class NettyConfig {
+    @Resource
+    private WebsocketHandler websocketHandler;
 
     @Value("${netty.port}")
     private int port;
@@ -62,7 +64,7 @@ public class NettyConfig {
                                 .addLast(new WebSocketServerProtocolHandler("/"))
                                 .addLast(statusHandler)
                                 .addLast(new IdleStateHandler(10, 10, 10))
-                                .addLast(new WebsocketHandler());
+                                .addLast(websocketHandler);
 
 
                     }

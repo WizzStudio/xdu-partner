@@ -10,14 +10,6 @@ public enum HighTag {
     private final int code;
     private final String display;
 
-    @Override
-    public String toString() {
-        return "HighTag{" +
-                "code=" + code +
-                ", display='" + display + '\'' +
-                '}';
-    }
-
     public static HighTag match(int code) {
         if (code == 1) {
             return STUDY;
@@ -29,5 +21,13 @@ public enum HighTag {
             return LIFE;
         }
         return STUDY;
+    }
+
+    @Override
+    public String toString() {
+        return "HighTag{" +
+                "code=" + code +
+                ", display='" + display + '\'' +
+                '}';
     }
 }

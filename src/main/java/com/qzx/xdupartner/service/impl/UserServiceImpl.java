@@ -53,11 +53,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public User insertNewUser(String stuId) {
+    public User insertNewUser(String openId) {
         User user;
         user = new User();
         user.setMyDescription("写几句话来描述一下自己吧~");
-        user.setStuId(stuId);
+        user.setOpenId(openId);
         //TODO 放入常量池，上传数据库图片，匿名的头像
         user.setIcon(SystemConstant.DEFAULT_ICON_URL + RandomUtil.randomInt(SystemConstant.RANDOM_ICON_MIN,
                 SystemConstant.RANDOM_ICON_MAX) +

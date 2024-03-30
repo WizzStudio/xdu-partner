@@ -9,8 +9,8 @@ import com.qzx.xdupartner.entity.Blog;
 import com.qzx.xdupartner.entity.dto.BlogDto;
 import com.qzx.xdupartner.entity.vo.BlogVo;
 import com.qzx.xdupartner.entity.vo.LowTagFrequencyVo;
+import com.qzx.xdupartner.entity.vo.R;
 import com.qzx.xdupartner.entity.vo.ResultCode;
-import com.qzx.xdupartner.entity.vo.ResultVo;
 import com.qzx.xdupartner.exception.ApiException;
 import com.qzx.xdupartner.exception.ParamErrorException;
 import com.qzx.xdupartner.service.BlogService;
@@ -89,35 +89,35 @@ public class BlogController {
         return blog;
     }
 
-        @ApiOperation("")
-@GetMapping("/like/{id}")
-    public ResultVo<String> likeBlog(@Validated @PathVariable("id") Long id) {
+    @ApiOperation("")
+    @GetMapping("/like/{id}")
+    public R<String> likeBlog(@Validated @PathVariable("id") Long id) {
         boolean isLike = blogService.likeBlog(id);
-        return new ResultVo<>(ResultCode.SUCCESS, isLike ? "点赞成功" : "取消点赞成功");
+        return new R<>(ResultCode.SUCCESS, isLike ? "点赞成功" : "取消点赞成功");
     }
 
-        @ApiOperation("")
-@PostMapping(value = "/pubBlog", produces = "application/json;charset=utf-8")
-    public ResultVo<String> publishBlog(@Validated @RequestBody @NotNull(message = "需要提交帖子") BlogDto blogDto) {
+    @ApiOperation("")
+    @PostMapping(value = "/pubBlog", produces = "application/json;charset=utf-8")
+    public R<String> publishBlog(@Validated @RequestBody @NotNull(message = "需要提交帖子") BlogDto blogDto) {
         checkBlogDtoParam(blogDto);
         Blog blog = transferToBlogClass(blogDto);
         blogService.saveBlog(blog, doExplainTags(blogDto));
-        return new ResultVo<>(ResultCode.SUCCESS, "发布成功");
+        return new R<>(ResultCode.SUCCESS, "发布成功");
     }
 
 
-        @ApiOperation("")
-@GetMapping(value = "/complete", produces = "application/json;charset=utf-8")
-    public ResultVo<String> completeBlog(@Validated @RequestParam @NotNull Long id) {
+    @ApiOperation("")
+    @GetMapping(value = "/complete", produces = "application/json;charset=utf-8")
+    public R<String> completeBlog(@Validated @RequestParam @NotNull Long id) {
         boolean isUpdate = blogService.completeBlog(id);
-        return new ResultVo<>(ResultCode.SUCCESS, isUpdate ? "恭喜您完成了！" : "更新帖子状态失败");
+        return new R<>(ResultCode.SUCCESS, isUpdate ? "恭喜您完成了！" : "更新帖子状态失败");
 
     }
 
-        @ApiOperation("")
-@PostMapping(value = "/update/{id}", produces = "application/json;charset=utf-8")
-    public ResultVo<String> updateBlog(@PathVariable Long id,
-                             @Validated @RequestBody @NotNull(message = "需要提交帖子") BlogDto blogDto) {
+    @ApiOperation("")
+    @PostMapping(value = "/update/{id}", produces = "application/json;charset=utf-8")
+    public R<String> updateBlog(@PathVariable Long id,
+                                @Validated @RequestBody @NotNull(message = "需要提交帖子") BlogDto blogDto) {
         checkBlogDtoParam(blogDto);
         Blog blog = transferToBlogClass(blogDto);
         blog.setId(id);
@@ -125,76 +125,76 @@ public class BlogController {
         if (!isUpdate) {
             throw new ApiException("更新失败");
         }
-        return new ResultVo<>(ResultCode.SUCCESS, "更新成功");
+        return new R<>(ResultCode.SUCCESS, "更新成功");
     }
 
-        @ApiOperation("")
-@GetMapping(value = "/delete", produces = "application/json;charset=utf-8")
-    public ResultVo<String> deleteBlog(Long id) {
+    @ApiOperation("")
+    @GetMapping(value = "/delete", produces = "application/json;charset=utf-8")
+    public R<String> deleteBlog(Long id) {
         boolean isDelete = blogService.deleteBlog(id);
         if (!isDelete) {
             throw new ApiException("删除失败");
         }
-        return new ResultVo<>(ResultCode.SUCCESS, "删除成功");
+        return new R<>(ResultCode.SUCCESS, "删除成功");
     }
 
-        @ApiOperation("")
-@GetMapping("/query/{id}")
-    public ResultVo<BlogVo> queryBlog(@Validated @PathVariable("id") @NotBlank(message = "帖子id不能为空") Long id) {
-        return new ResultVo<>(ResultCode.SUCCESS, blogService.getVoById(id));
+    @ApiOperation("")
+    @GetMapping("/query/{id}")
+    public R<BlogVo> queryBlog(@Validated @PathVariable("id") @NotBlank(message = "帖子id不能为空") Long id) {
+        return new R<>(ResultCode.SUCCESS, blogService.getVoById(id));
     }
 
-        @ApiOperation("")
-@GetMapping(value = "/queryOnesBlog", produces = "application/json;charset=utf-8")
-    public ResultVo<List<BlogVo>> queryOnesBlogs(@RequestParam(value = "current", defaultValue = "1") Integer current,
-                                       @RequestParam Long userId) {
-        return new ResultVo<>(ResultCode.SUCCESS, blogService.getOnesBlogVo(userId, current));
+    @ApiOperation("")
+    @GetMapping(value = "/queryOnesBlog", produces = "application/json;charset=utf-8")
+    public R<List<BlogVo>> queryOnesBlogs(@RequestParam(value = "current", defaultValue = "1") Integer current,
+                                          @RequestParam Long userId) {
+        return new R<>(ResultCode.SUCCESS, blogService.getOnesBlogVo(userId, current));
     }
 
-        @ApiOperation("")
-@GetMapping(value = "/queryHottestBlog", produces = "application/json;charset=utf-8")
-    public ResultVo<List<BlogVo>> queryHottestBlogs(@RequestParam(value = "current", defaultValue = "1") Integer current) {
-        return new ResultVo<>(ResultCode.SUCCESS, blogService.getHottest(current));
+    @ApiOperation("")
+    @GetMapping(value = "/queryHottestBlog", produces = "application/json;charset=utf-8")
+    public R<List<BlogVo>> queryHottestBlogs(@RequestParam(value = "current", defaultValue = "1") Integer current) {
+        return new R<>(ResultCode.SUCCESS, blogService.getHottest(current));
     }
 
-        @ApiOperation("")
-@GetMapping(value = "/queryNewestBlog", produces = "application/json;charset=utf-8")
-    public ResultVo<List<BlogVo>> queryNewestBlogs(@RequestParam(value = "current", defaultValue = "1") Integer current) {
-        return new ResultVo<>(ResultCode.SUCCESS, blogService.getNewest(current));
+    @ApiOperation("")
+    @GetMapping(value = "/queryNewestBlog", produces = "application/json;charset=utf-8")
+    public R<List<BlogVo>> queryNewestBlogs(@RequestParam(value = "current", defaultValue = "1") Integer current) {
+        return new R<>(ResultCode.SUCCESS, blogService.getNewest(current));
     }
 
-        @ApiOperation("")
-@GetMapping(value = "/queryLikeBlog", produces = "application/json;charset=utf-8")
-    public ResultVo<List<BlogVo>> queryLikeBlogs(@RequestParam(value = "current", defaultValue = "1") Integer current) {
-        return new ResultVo<>(ResultCode.SUCCESS, blogService.getLike(current));
+    @ApiOperation("")
+    @GetMapping(value = "/queryLikeBlog", produces = "application/json;charset=utf-8")
+    public R<List<BlogVo>> queryLikeBlogs(@RequestParam(value = "current", defaultValue = "1") Integer current) {
+        return new R<>(ResultCode.SUCCESS, blogService.getLike(current));
     }
 
-        @ApiOperation("")
-@PostMapping(value = "/searchBlog", produces = "application/json;charset=utf-8")
-    public ResultVo<List<BlogVo>> searchBlog(@Validated @NotBlank(message = "搜索词不能为空") @RequestParam String keyword,
-                                   @RequestParam(value = "current", defaultValue = "1") Integer current) {
-        return new ResultVo<>(ResultCode.SUCCESS, blogService.search(keyword, current));
+    @ApiOperation("")
+    @PostMapping(value = "/searchBlog", produces = "application/json;charset=utf-8")
+    public R<List<BlogVo>> searchBlog(@Validated @NotBlank(message = "搜索词不能为空") @RequestParam String keyword,
+                                      @RequestParam(value = "current", defaultValue = "1") Integer current) {
+        return new R<>(ResultCode.SUCCESS, blogService.search(keyword, current));
     }
 
-        @ApiOperation("")
-@GetMapping(value = "/searchTagWordByTypeId", produces = "application/json;charset=utf-8")
-    public ResultVo<List<BlogVo>> searchLowTagsByTypeId(@Validated @DecimalMax(value = "4", message = "一级标签类型不合法") @DecimalMin(value =
+    @ApiOperation("")
+    @GetMapping(value = "/searchTagWordByTypeId", produces = "application/json;charset=utf-8")
+    public R<List<BlogVo>> searchLowTagsByTypeId(@Validated @DecimalMax(value = "4", message = "一级标签类型不合法") @DecimalMin(value =
             "1", message = "一级标签类型不合法") @RequestParam Integer typeId,
-                                              @Validated @NotNull(message = "搜索词不能为空") String keyword,
-                                              @RequestParam(value =
-                                                      "current", defaultValue = "1") Integer current) {
+                                                 @Validated @NotNull(message = "搜索词不能为空") String keyword,
+                                                 @RequestParam(value =
+                                                         "current", defaultValue = "1") Integer current) {
         if (keyword.equals("all")) {
             keyword = "";
         }
-        return new ResultVo<>(ResultCode.SUCCESS, blogService.searchByTypeIdContainsLowTag(typeId, keyword, current));
+        return new R<>(ResultCode.SUCCESS, blogService.searchByTypeIdContainsLowTag(typeId, keyword, current));
     }
 
-        @ApiOperation("")
-@GetMapping(value = "/getTagWordCount", produces = "application/json;charset=utf-8")
-    public ResultVo<List<LowTagFrequencyVo>> getTagWordCount(
+    @ApiOperation("")
+    @GetMapping(value = "/getTagWordCount", produces = "application/json;charset=utf-8")
+    public R<List<LowTagFrequencyVo>> getTagWordCount(
             @Validated @DecimalMax(value = "4", message = "一级标签类型不合法") @DecimalMin(value = "1", message = "一级标签类型不合法")
             @RequestParam Integer typeId) {
-        return new ResultVo<>(ResultCode.SUCCESS, blogService.getTagWordCount(typeId));
+        return new R<>(ResultCode.SUCCESS, blogService.getTagWordCount(typeId));
     }
 }
 

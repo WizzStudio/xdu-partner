@@ -2,9 +2,8 @@ package com.qzx.xdupartner.controller;
 
 
 import com.qzx.xdupartner.entity.Mbti;
+import com.qzx.xdupartner.entity.vo.R;
 import com.qzx.xdupartner.entity.vo.ResultCode;
-import com.qzx.xdupartner.entity.vo.ResultVo;
-import com.qzx.xdupartner.exception.ApiException;
 import com.qzx.xdupartner.service.MbtiService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -31,18 +30,18 @@ public class MbtiController {
     @Resource
     private MbtiService mbtiService;
 
-        @ApiOperation("")
-@GetMapping(value = "/{id}")
-    public ResultVo<Mbti> mbtiInfo(@PathVariable int id) {
+    @ApiOperation("")
+    @GetMapping(value = "/{id}")
+    public R<Mbti> mbtiInfo(@PathVariable int id) {
         Mbti mbti = mbtiService.getById(id);
         if (mbti == null) {
-            return new ResultVo<>(ResultCode.VALIDATE_ERROR, mbti);
+            return new R<>(ResultCode.VALIDATE_ERROR, mbti);
         }
-        return new ResultVo<>(ResultCode.SUCCESS, mbti);
+        return new R<>(ResultCode.SUCCESS, mbti);
     }
 
-        @ApiOperation("")
-@GetMapping(value = "/all")
+    @ApiOperation("")
+    @GetMapping(value = "/all")
     public List<Mbti> mbtiAll() {
         return mbtiService.list();
     }

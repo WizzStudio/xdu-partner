@@ -10,14 +10,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UserVo {
     private Long id;
-
+    private String icon;
+    private String nickName;
     public UserVo(String icon, String nickName) {
         this.icon = icon;
         this.nickName = nickName;
     }
-
-    private String icon;
-    private String nickName;
 
     @JsonIgnore
     public static UserVo getAnonymousVo() {

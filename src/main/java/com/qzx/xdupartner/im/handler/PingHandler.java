@@ -7,7 +7,7 @@ import com.qzx.xdupartner.im.OnlineUserHolder;
 import io.netty.channel.ChannelHandlerContext;
 
 public class PingHandler {
-    public static void excute(ReqMessage reqMessage, ChannelHandlerContext ctx) {
+    public static void execute(ReqMessage reqMessage, ChannelHandlerContext ctx) {
         if (OnlineUserHolder.containsChannel(ctx) && reqMessage.getContent() != null && reqMessage.getContent().equals("ping")) {
             ctx.writeAndFlush(RspMessage.getSystemTextFrame("pong"));
         } else {

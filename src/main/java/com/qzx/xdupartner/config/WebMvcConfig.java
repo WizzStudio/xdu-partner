@@ -17,46 +17,6 @@ import javax.annotation.Resource;
 @Slf4j
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
-//    @Value("${file.request-path}")
-//    private String reqPath; // 请求地址
-//    @Value("${file.local-path}")
-//    private String localPath; // 本地存放资源目录的绝对路径
-
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-//        File logoDir = new File(localPath);
-//        boolean flag = false;
-//        if (!logoDir.exists()) {
-//            flag = logoDir.mkdirs();
-//        }
-//        if (flag) {
-//            log.info("已成功创建资源 logo 目录：{}", localPath);
-//        }
-//
-//        log.info("getAbsolutePath = {}", logoDir.getAbsolutePath());
-//        log.info("getPath = {}", logoDir.getPath());
-
-//        registry.addResourceHandler(reqPath)
-//                .addResourceLocations("file:" + logoDir.getAbsolutePath() + File.separator);
-        registry.addResourceHandler("/**").addResourceLocations("classpath:/static/");
-        registry.addResourceHandler("/static/**").addResourceLocations("classpath:/static/");
-        registry.addResourceHandler("swagger-ui.html")
-                .addResourceLocations("classpath:/META-INF/resources/");
-        registry.addResourceHandler("/webjars/**")
-                .addResourceLocations("classpath:/META-INF/resources/webjars/");
-    }
-
-    @Resource
-    private TokenInterceptor tokenInterceptor;
-    @Resource
-    private LoginInterceptor loginInterceptor;
-
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-//        registry.addInterceptor(tokenInterceptor).addPathPatterns("/**").excludePathPatterns(URL_WHITELISTS).order(0);
-        registry.addInterceptor(tokenInterceptor).addPathPatterns("/**").order(0);
-        registry.addInterceptor(loginInterceptor).addPathPatterns("/**").excludePathPatterns(URL_WHITELISTS).order(1);
-    }
 
     public static final String[] URL_WHITELISTS = {
             "/swagger-ui.html",
@@ -77,4 +37,24 @@ public class WebMvcConfig implements WebMvcConfigurer {
             //以下测试结束后删掉
 //            "/blog/**"
     };
+    @Resource
+    private TokenInterceptor tokenInterceptor;
+    @Resource
+    private LoginInterceptor loginInterceptor;
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/**").addResourceLocations("classpath:/static/");
+        registry.addResourceHandler("/static/**").addResourceLocations("classpath:/static/");
+        registry.addResourceHandler("swagger-ui.html")
+                .addResourceLocations("classpath:/META-INF/resources/");
+        registry.addResourceHandler("/webjars/**")
+                .addResourceLocations("classpath:/META-INF/resources/webjars/");
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(tokenInterceptor).addPathPatterns("/**").order(0);
+        registry.addInterceptor(loginInterceptor).addPathPatterns("/**").excludePathPatterns(URL_WHITELISTS).order(1);
+    }
 }

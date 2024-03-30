@@ -10,8 +10,8 @@ public enum ResultCode implements StatusCode {
     UNKNOWN_ERROR(2003, "未知错误"),
     RESPONSE_PACK_ERROR(2003, "response返回包装失败");
 
-    private int code;
-    private String msg;
+    private final int code;
+    private final String msg;
 
     ResultCode(int code, String msg) {
         this.code = code;

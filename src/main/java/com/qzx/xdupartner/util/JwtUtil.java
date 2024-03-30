@@ -26,11 +26,6 @@ public class JwtUtil {
     @Getter
     public static String JWT_KEY = "tjRuuL";
 
-    @Value("${jwt_key}")
-    public void setJwtKey(String jwtKey) {
-        JWT_KEY = jwtKey;
-    }
-
     public static String getUUID() {
         String token = UUID.randomUUID().toString().replaceAll("-", "");
         return token;
@@ -121,6 +116,11 @@ public class JwtUtil {
                 .setSigningKey(secretKey)
                 .parseClaimsJws(jwt)
                 .getBody();
+    }
+
+    @Value("${jwt_key}")
+    public void setJwtKey(String jwtKey) {
+        JWT_KEY = jwtKey;
     }
 
 

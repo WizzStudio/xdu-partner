@@ -28,3 +28,8 @@ mybatis-plus:
 accessId:
 accessKey:
 bucket:
+wx:
+  miniapp:
+    configs:
+      - appid: #微信小程序的appid
+        secret: #微信小程序的Secret

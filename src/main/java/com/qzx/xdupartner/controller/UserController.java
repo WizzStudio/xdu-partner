@@ -1,22 +1,18 @@
 package com.qzx.xdupartner.controller;
 
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.RandomUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.qzx.xdupartner.constant.RedisConstant;
-import com.qzx.xdupartner.constant.SystemConstant;
 import com.qzx.xdupartner.entity.User;
 import com.qzx.xdupartner.entity.vo.BlogVo;
+import com.qzx.xdupartner.entity.vo.R;
+import com.qzx.xdupartner.entity.vo.ResultCode;
 import com.qzx.xdupartner.entity.vo.UserInfoVo;
 import com.qzx.xdupartner.exception.ApiException;
 import com.qzx.xdupartner.service.BlogService;
 import com.qzx.xdupartner.service.UserService;
-import com.qzx.xdupartner.util.JwtUtil;
 import com.qzx.xdupartner.util.UserHolder;
-import com.qzx.xdupartner.util.XduAuthUtil;
+import com.qzx.xdupartner.util.UserUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -25,11 +21,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.validation.constraints.NotNull;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -49,181 +41,54 @@ import java.util.concurrent.TimeUnit;
 public class UserController {
     @Resource
     private UserService userService;
-
     @Resource
     private BlogService blogService;
     @Resource
-    private XduAuthUtil xduAuthUtil;
-    @Resource
     private StringRedisTemplate stringRedisTemplate;
 
-    private static final ExecutorService executor = Executors.newCachedThreadPool();
-
-    private User transferToUser(UserInfoVo userInfoVo) {
-        User user = BeanUtil.copyProperties(userInfoVo, User.class);
-        user.setId(UserHolder.getUserId());
-//        String icon = userInfoVo.getIcon();
-//        if (StrUtil.isNotBlank(icon))
-//            user.setIcon(AesUtil.decryptHex(icon));
-        user.setIcon(userInfoVo.getIcon());
-        List<String> picture = userInfoVo.getPicture();
-        if (picture != null && !picture.isEmpty()) {
-            if (picture.size() > 3) {
-                throw new ApiException("照片墙照片最多为3张");
-            }
-//            List<String> collect = null;
-//            try {
-//                collect = picture.stream().map(AesUtil::decryptHex).collect(Collectors.toList());
-//            } catch (Exception e) {
-//                throw new ApiException("照片墙字串有误");
-//            }
-            String picStr = StrUtil.join(SystemConstant.PICTURE_CONJUNCTION, picture);
-            if (StrUtil.isBlank(picStr)) {
-                picStr = null;
-            }
-            user.setPicture(picStr);
-        } else {
-            user.setPicture(null);
-        }
-        return user;
-    }
-
-    private UserInfoVo getUserInfoVo(User user) {
-//        FileStore icon = fileStoreService.getById(user.getIcon());
-//        if (icon == null) {
-//            user.setIcon(fileStoreService.getById(1L).getFileUri());
-//        } else {
-//            user.setIcon(icon.getFileUri());
-//        }
-        if (user.getIcon() == null || StrUtil.isBlank(user.getIcon())) {
-            user.setIcon(
-                    SystemConstant.DEFAULT_ICON_URL + RandomUtil.randomInt(SystemConstant.RANDOM_ICON_MIN,
-                            SystemConstant.RANDOM_ICON_MAX) +
-                            ".png");
-        }
-        String picture = user.getPicture();
-        List<String> collect = null;
-        if (StrUtil.isNotBlank(picture)) {
-            collect = Arrays.asList(picture.split(SystemConstant.PICTURE_CONJUNCTION));
-        }
-        UserInfoVo userInfoVo = BeanUtil.toBean(user, UserInfoVo.class);
-        userInfoVo.setPicture(collect);
-        return userInfoVo;
-    }
     @ApiOperation("")
     @PostMapping(value = "/changeUserInfo", produces = "application/json;charset=utf-8")
     public String ChangeUserInfo(@Validated @RequestBody UserInfoVo userInfoVo) {
-        User user = transferToUser(userInfoVo);
+        User user = UserUtil.transferToUser(userInfoVo);
         userService.updateById(user);
         stringRedisTemplate.opsForValue()
-                .set(RedisConstant.LOGIN_PREFIX + UserHolder.getUserId(), JSONUtil.toJsonStr(user),
+                .set(RedisConstant.LOGIN_PREFIX + UserHolder.getUserSessionKey(), JSONUtil.toJsonStr(user),
                         RedisConstant.LOGIN_VALID_TTL,
                         TimeUnit.HOURS);
         UserHolder.saveUser(userService.getById(UserHolder.getUserId()));
         stringRedisTemplate.delete(RedisConstant.USERVO_CACHE + UserHolder.getUserId());
         return "修改成功";
     }
-    @ApiOperation("")
-    @PostMapping(value = "/login", produces = "application/json;charset=utf-8")
-    public Map<String, Object> login(@NotNull(message = "学号不能为空") @RequestParam("stuId") String stuId,
-                                     @NotNull(message = "密码不能为空") @RequestParam("password") String password) {
-        Integer login = null;
-        long beginTime = System.currentTimeMillis();
-        try {
 
-            log.info("login: begin: stuId:{}, startTime:{}", stuId, beginTime);
-//            if (StrUtil.isNotBlank(vcode)) {
-//                login = xduAuthUtil.loginWithCaptcha(stuId, password, vcode);
-//            } else {
-            login = xduAuthUtil.loginV2(stuId, password);
-//            }
-            long endTime = System.currentTimeMillis();
-            log.info("login: end: stuId:{}, endTime:{}, xduLoginCost:{}ms, loginResult:{}", stuId, endTime,
-                    endTime - beginTime, login);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-        }
-        if (ObjectUtil.isNull(login) || login.equals(0)) {
-            return new HashMap<String, Object>(1) {{
-                put("msg", "登录失败");
-            }};
-        } else if (login.equals(2)) {
-            return new HashMap<String, Object>(2) {{
-                put("msg", "登录需要验证码，请到西电一站式网站手动登录成功后再来登录");
-//                put("vcode", stringRedisTemplate.opsForHash().get(RedisConstant.NEED_CAPTCHA_USER + stuId, "img"));
-            }};
-        }
-        User user = userService.lambdaQuery().eq(User::getStuId, stuId).one();
-        if (ObjectUtil.isNull(user)) {
-            user = userService.insertNewUser(stuId);
-        }
-        User finalUser = user;
-        executor.submit(() -> stringRedisTemplate.opsForValue()
-                .set(RedisConstant.LOGIN_PREFIX + finalUser.getId(), JSONUtil.toJsonStr(finalUser),
-                        RedisConstant.LOGIN_VALID_TTL,
-                        TimeUnit.HOURS));
-//        UserHolder.saveUser(user);
-        HashMap<String, Object> res = new HashMap<>(3);
-        res.put("msg", "登录成功");
-        res.put("token", JwtUtil.createJWT(String.valueOf(user.getId())));
-        res.put("userId", user.getId());
-        long returnTime = System.currentTimeMillis();
-        log.info("login: method return, returnTime:{}, cost:{}ms", returnTime, returnTime - beginTime);
-        return res;
-    }
-    @ApiOperation("")
-    @PostMapping(value = "/testLogin", produces = "application/json;charset=utf-8")
-    public Map<String, Object> testLogin(@NotNull(message = "学号不能为空") @RequestParam("stuId") String stuId,
-                                         @NotNull(message = "密码不能为空") @RequestParam("password") String password) {
-        HashMap<String, Object> res = new HashMap<>(3);
-        if (stuId.equals("12345678")) {
-            if (password.equals("12345678")) {
-                User user = userService.lambdaQuery().eq(User::getStuId, stuId).one();
-                res.put("msg", "登录成功");
-                stringRedisTemplate.opsForValue()
-                        .set(RedisConstant.LOGIN_PREFIX + user.getId(), JSONUtil.toJsonStr(user),
-                                RedisConstant.LOGIN_VALID_TTL,
-                                TimeUnit.HOURS);
-                res.put("token", JwtUtil.createJWT(String.valueOf(user.getId())));
-                //res.put("token", "已单独交付");
-                res.put("userId", user.getId());
-                return res;
-            }
-            return new HashMap<String, Object>(1) {{
-                put("msg", "登录失败");
-            }};
-        }
-        return new HashMap<String, Object>(1) {{
-            put("msg", "登录需要验证码，请到西电一站式网站手动登录成功后再来登录");
-        }};
-    }
     @ApiOperation("")
     @GetMapping(value = "/me")
-    public UserInfoVo ofMe() {
+    public R<UserInfoVo> ofMe() {
         User user = userService.getById(UserHolder.getUserId());
-        return getUserInfoVo(user);
+        return new R<>(ResultCode.SUCCESS, UserUtil.getUserInfoVo(user));
     }
 
     @ApiOperation("")
     @GetMapping(value = "/logout")
-    public String logout() {
+    public R<String> logout() {
         UserHolder.removeUser();
-        stringRedisTemplate.delete(RedisConstant.LOGIN_PREFIX + UserHolder.getUserId());
-        return "登出成功";
+        stringRedisTemplate.delete(RedisConstant.LOGIN_PREFIX + UserHolder.getUserSessionKey());
+        return new R(ResultCode.SUCCESS, "登出成功");
     }
+
     @ApiOperation("")
     @GetMapping(value = "/queryMyselfPub")
-    public List<BlogVo> queryMyselfPub(@RequestParam(value = "current", defaultValue = "1") Integer current) {
-        return blogService.getOnesBlogVo(UserHolder.getUserId(), current);
+    public R<List<BlogVo>> queryMyselfPub(@RequestParam(value = "current", defaultValue = "1") Integer current) {
+        return new R<>(ResultCode.SUCCESS, blogService.getOnesBlogVo(UserHolder.getUserId(), current));
     }
+
     @ApiOperation("")
     @GetMapping(value = "/otherUser/{userId}")
-    public UserInfoVo queryOther(@PathVariable Long userId) {
+    public R<UserInfoVo> queryOther(@PathVariable Long userId) {
         User byId = userService.getById(userId);
         if (byId == null) {
             throw new ApiException("用户不存在！");
         }
-        return getUserInfoVo(byId);
+        return new R<>(ResultCode.SUCCESS, UserUtil.getUserInfoVo(byId));
     }
 }
 

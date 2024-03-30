@@ -34,7 +34,7 @@ public class ReqMessage implements Serializable {
         reqMessage.setCommand(SystemConstant.CommandType.PING);
         reqMessage.setToken(JwtUtil.createJWT("1"));
         reqMessage.setContent("ping");
-        reqMessage.setFromId(1l);
+        reqMessage.setFromId(1L);
         System.out.println(JSONUtil.toJsonStr(reqMessage));
     }
 }
