@@ -182,7 +182,7 @@ public class UserController {
                                 RedisConstant.LOGIN_VALID_TTL,
                                 TimeUnit.HOURS);
                 res.put("token", JwtUtil.createJWT(String.valueOf(user.getId())));
-//                res.put("token", "已单独交付");
+                //res.put("token", "已单独交付");
                 res.put("userId", user.getId());
                 return res;
             }
