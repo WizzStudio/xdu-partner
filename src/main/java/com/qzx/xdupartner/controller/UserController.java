@@ -17,6 +17,8 @@ import com.qzx.xdupartner.service.UserService;
 import com.qzx.xdupartner.util.JwtUtil;
 import com.qzx.xdupartner.util.UserHolder;
 import com.qzx.xdupartner.util.XduAuthUtil;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.validation.annotation.Validated;
@@ -40,6 +42,7 @@ import java.util.concurrent.TimeUnit;
  * @author qzx
  * @since 2023-08-12
  */
+@Api
 @Slf4j
 @RestController
 @RequestMapping("/user")
@@ -107,7 +110,7 @@ public class UserController {
         userInfoVo.setPicture(collect);
         return userInfoVo;
     }
-
+    @ApiOperation("")
     @PostMapping(value = "/changeUserInfo", produces = "application/json;charset=utf-8")
     public String ChangeUserInfo(@Validated @RequestBody UserInfoVo userInfoVo) {
         User user = transferToUser(userInfoVo);
@@ -120,7 +123,7 @@ public class UserController {
         stringRedisTemplate.delete(RedisConstant.USERVO_CACHE + UserHolder.getUserId());
         return "修改成功";
     }
-
+    @ApiOperation("")
     @PostMapping(value = "/login", produces = "application/json;charset=utf-8")
     public Map<String, Object> login(@NotNull(message = "学号不能为空") @RequestParam("stuId") String stuId,
                                      @NotNull(message = "密码不能为空") @RequestParam("password") String password) {
@@ -168,7 +171,7 @@ public class UserController {
         log.info("login: method return, returnTime:{}, cost:{}ms", returnTime, returnTime - beginTime);
         return res;
     }
-
+    @ApiOperation("")
     @PostMapping(value = "/testLogin", produces = "application/json;charset=utf-8")
     public Map<String, Object> testLogin(@NotNull(message = "学号不能为空") @RequestParam("stuId") String stuId,
                                          @NotNull(message = "密码不能为空") @RequestParam("password") String password) {
@@ -194,26 +197,26 @@ public class UserController {
             put("msg", "登录需要验证码，请到西电一站式网站手动登录成功后再来登录");
         }};
     }
-
+    @ApiOperation("")
     @GetMapping(value = "/me")
     public UserInfoVo ofMe() {
         User user = userService.getById(UserHolder.getUserId());
         return getUserInfoVo(user);
     }
 
-
+    @ApiOperation("")
     @GetMapping(value = "/logout")
     public String logout() {
         UserHolder.removeUser();
         stringRedisTemplate.delete(RedisConstant.LOGIN_PREFIX + UserHolder.getUserId());
         return "登出成功";
     }
-
+    @ApiOperation("")
     @GetMapping(value = "/queryMyselfPub")
     public List<BlogVo> queryMyselfPub(@RequestParam(value = "current", defaultValue = "1") Integer current) {
         return blogService.getOnesBlogVo(UserHolder.getUserId(), current);
     }
-
+    @ApiOperation("")
     @GetMapping(value = "/otherUser/{userId}")
     public UserInfoVo queryOther(@PathVariable Long userId) {
         User byId = userService.getById(userId);

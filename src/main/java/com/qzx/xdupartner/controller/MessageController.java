@@ -9,6 +9,8 @@ import com.qzx.xdupartner.entity.RspMessage;
 import com.qzx.xdupartner.entity.vo.MessageVo;
 import com.qzx.xdupartner.service.MessageService;
 import com.qzx.xdupartner.util.UserHolder;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +27,7 @@ import java.util.List;
  * @author qzx
  * @since 2023-08-12
  */
+@Api
 @RestController
 @RequestMapping("/message")
 public class MessageController {
@@ -42,12 +45,14 @@ public class MessageController {
         return message;
     }
 
-    @GetMapping(value = "/connect", produces = "application/json;charset=utf-8")
+        @ApiOperation("")
+@GetMapping(value = "/connect", produces = "application/json;charset=utf-8")
     public List<MessageVo> connect() {
         return messageService.connect();
     }
 
-    @PostMapping(value = "/sendMessage", produces = "application/json;charset=utf-8")
+        @ApiOperation("")
+@PostMapping(value = "/sendMessage", produces = "application/json;charset=utf-8")
     public String send(@Validated @RequestBody @NotNull ReqMessage reqMessage) {
         Message message = transferToMessage(reqMessage);
         messageService.sendMessage(message);
@@ -55,7 +60,8 @@ public class MessageController {
     }
 
 
-    @PostMapping(value = "/readMessage", produces = "application/json;charset=utf-8")
+        @ApiOperation("")
+@PostMapping(value = "/readMessage", produces = "application/json;charset=utf-8")
     public String read(@Validated @RequestParam @NotNull Long fromId,
                        @Validated @RequestParam @NotNull Long messageId) {
         stringRedisTemplate.delete(UserHolder.getUserId() + RedisConstant.OFFLINE_MESSAGE + fromId);
@@ -65,7 +71,8 @@ public class MessageController {
         return "消息已读";
     }
 
-    @PostMapping(value = "/historyMessage", produces = "application/json;charset=utf-8")
+        @ApiOperation("")
+@PostMapping(value = "/historyMessage", produces = "application/json;charset=utf-8")
     public List<RspMessage> history(@Validated @RequestParam @NotNull Long fromId
             ,
                                     @Validated @RequestParam @NotNull Long messageId

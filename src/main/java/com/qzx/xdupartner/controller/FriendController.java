@@ -13,6 +13,8 @@ import com.qzx.xdupartner.service.FriendService;
 import com.qzx.xdupartner.service.MessageService;
 import com.qzx.xdupartner.service.UserService;
 import com.qzx.xdupartner.util.UserHolder;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,6 +31,7 @@ import java.util.stream.Collectors;
  * @author qzx
  * @since 2023-08-12
  */
+@Api
 @RestController
 @RequestMapping("/friend")
 public class FriendController {
@@ -39,7 +42,8 @@ public class FriendController {
     @Resource
     private MessageService messageService;
 
-    @PostMapping(value = "/makeFriend", produces = "application/json;charset=utf-8")
+        @ApiOperation("")
+@PostMapping(value = "/makeFriend", produces = "application/json;charset=utf-8")
     public ResultVo<String> makeFriend(@Validated @RequestParam @NotNull Long friendId,
                              @Validated @RequestParam @NotNull String message) {
         boolean ifFriend = friendService.judgeIfFriend(friendId);
@@ -65,7 +69,8 @@ public class FriendController {
         return new ResultVo<>(ResultCode.SUCCESS, "发送好友请求成功！");
     }
 
-    @PostMapping(value = "/acceptFriend", produces = "application/json;charset=utf-8")
+        @ApiOperation("")
+@PostMapping(value = "/acceptFriend", produces = "application/json;charset=utf-8")
     public ResultVo<String> acceptFriend(@Validated @RequestParam @NotNull Long friendId, @RequestParam String alterName) {
         boolean isFriend = friendService.judgeIfFriend(friendId);
         if (UserHolder.getUserId().equals(friendId) || isFriend) {
@@ -86,7 +91,8 @@ public class FriendController {
         }
     }
 
-    @GetMapping(value = "/allFriends", produces = "application/json;charset=utf-8")
+        @ApiOperation("")
+@GetMapping(value = "/allFriends", produces = "application/json;charset=utf-8")
     //查看自己的所有好友
     public ResultVo<List<UserVo>> allFriends() {
         List<Friend> friends = friendService.query().eq("user_id", UserHolder.getUserId()).list();
@@ -100,7 +106,8 @@ public class FriendController {
         }).collect(Collectors.toList()));
     }
 
-    @PostMapping(value = "/changeFriendAlterName", produces = "application/json;charset=utf-8")
+        @ApiOperation("")
+@PostMapping(value = "/changeFriendAlterName", produces = "application/json;charset=utf-8")
     public ResultVo<String> changeFriendAlterName(@Validated @RequestParam @NotNull Long friendId,
                                         @RequestParam String alterName) {
         if ("".equals(alterName)) {

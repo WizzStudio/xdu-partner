@@ -10,6 +10,8 @@ import com.qzx.xdupartner.constant.RedisConstant;
 import com.qzx.xdupartner.entity.vo.ResultCode;
 import com.qzx.xdupartner.entity.vo.ResultVo;
 import com.qzx.xdupartner.schedule.ScheduleMission;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -31,6 +33,7 @@ import java.util.Map;
  * @author qzx
  * @since 2023-06-29
  */
+@Api
 @RestController
 @Slf4j
 @RequestMapping("/api/file")
@@ -49,6 +52,7 @@ public class FileStoreController {
 
 
     @CrossOrigin
+    @ApiOperation("")
     @GetMapping("/oss/policy")
     public ResultVo<Map<String, String>> policy() {
         String endpoint = "oss-cn-hangzhou.aliyuncs.com";
@@ -84,7 +88,7 @@ public class FileStoreController {
         }
         return null;
     }
-
+    @ApiOperation("")
     @PostMapping(value = "/insertDict", produces = "application/json;charset=utf-8")
     public void insertDict(@Validated @NotBlank(message = "词语不能为空") @RequestParam String keyword) {
         String dict = stringRedisTemplate.opsForValue().get(RedisConstant.DICT_KEY);
