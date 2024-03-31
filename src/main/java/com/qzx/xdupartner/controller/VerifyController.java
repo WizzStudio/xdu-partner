@@ -1,6 +1,7 @@
 package com.qzx.xdupartner.controller;
 
 import cn.hutool.core.date.DateUtil;
+import com.qzx.xdupartner.constant.RedisConstant;
 import com.qzx.xdupartner.entity.vo.R;
 import com.qzx.xdupartner.entity.vo.ResultCode;
 import com.qzx.xdupartner.util.VerCodeGenerateUtil;
@@ -57,13 +58,23 @@ public class VerifyController {
                     "\t<span style=\"font-size:16px;\">亲爱的用户：</span> \n" +
                     "</h3>\n" +
                     "<p>\n" +
-                    "\t<span style=\"font-size:14px;\">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style=\"font-size:14px;\">&nbsp; <span style=\"font-size:16px;\">&nbsp;&nbsp;您好！您正在进行邮箱验证，本次请求的验证码为：<span style=\"font-size:24px;color:#FFE500;\"> " + verCode + "</span>,本验证码10分钟内有效，请在10分钟内完成验证。（请勿泄露此验证码）如非本人操作，请忽略该邮件。(这是一封自动发送的邮件，请不要直接回复）</span></span>\n" +
+                    "\t<span style=\"font-size:14px;\">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style=\"font-size:14px;" +
+                    "\">&nbsp; <span style=\"font-size:16px;\">&nbsp;&nbsp;您正在进行邮箱验证，本次请求的验证码为：<span " +
+                    "style=\"font-size:24px;color:#FFE500;\">" + verCode + "</span>,本验证码10分钟内有效，请在10" +
+                    "分钟内完成验证。（请勿泄露此验证码）如非本人操作，请忽略该邮件。(这是一封自动发送的邮件，请不要直接回复）</span></span>\n" +
                     "</p>\n" +
                     "<p style=\"text-align:right;\">\n" +
-                    "\t<span style=\"background-color:#FFFFFF;font-size:16px;color:#000000;\"><span style=\"color:#000000;font-size:16px;background-color:#FFFFFF;\"><span class=\"token string\" style=\"font-family:&quot;font-size:16px;color:#000000;line-height:normal !important;background-color:#FFFFFF;\">Share社区</span></span></span> \n" +
+                    "\t<span style=\"background-color:#FFFFFF;font-size:16px;color:#000000;\"><span " +
+                    "style=\"color:#000000;font-size:16px;background-color:#FFFFFF;\"><span class=\"token string\" " +
+                    "style=\"font-family:&quot;font-size:16px;color:#000000;line-height:normal !important;" +
+                    "background-color:#FFFFFF;\">仙电搭子社区</span></span></span> \n" +
                     "</p>\n" +
                     "<p style=\"text-align:right;\">\n" +
-                    "\t<span style=\"background-color:#FFFFFF;font-size:14px;\"><span style=\"color:#FF9900;font-size:18px;\"><span class=\"token string\" style=\"font-family:&quot;font-size:16px;color:#000000;line-height:normal !important;\"><span style=\"font-size:16px;color:#000000;background-color:#FFFFFF;\">" + time + "</span><span style=\"font-size:18px;color:#000000;background-color:#FFFFFF;\"></span></span></span></span> \n" +
+                    "\t<span style=\"background-color:#FFFFFF;font-size:14px;\"><span style=\"color:#FF9900;" +
+                    "font-size:18px;\"><span class=\"token string\" style=\"font-family:&quot;font-size:16px;" +
+                    "color:#000000;line-height:normal !important;\"><span style=\"font-size:16px;color:#000000;" +
+                    "background-color:#FFFFFF;\">" + time + "</span><span style=\"font-size:18px;color:#000000;" +
+                    "background-color:#FFFFFF;\"></span></span></span></span> \n" +
                     "</p>", true);
             //收件人
             helper.setTo(stuId + "@stu.xidian.edu.cn");
@@ -79,7 +90,7 @@ public class VerifyController {
             return new R<>(ResultCode.MAIL_SEND_ERROR, "发送失败-邮箱无效");
         }
         //发送验证码成功
-        stringRedisTemplate.opsForValue().set(stuId, verCode, 10, TimeUnit.MINUTES);
+        stringRedisTemplate.opsForValue().set(RedisConstant.MAIL_CODE_PREFIX + stuId, verCode, 10, TimeUnit.MINUTES);
         return new R<>(ResultCode.SUCCESS, "发送成功");
     }
 }

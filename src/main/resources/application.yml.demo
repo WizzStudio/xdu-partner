@@ -1,6 +1,6 @@
 spring:
   mail:
-      username:1500418656@qq.com
+      username: 1500418656@qq.com
       #邮箱授权码，百度一下很简单
       password:
       host: smtp.qq.com

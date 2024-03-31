@@ -31,11 +31,11 @@ public class WechatController {
     public R<WxMaJscode2SessionResult> registor(
             @RequestParam("stuId") String stuId,
             @RequestParam("code") String code,
-            @RequestParam("chsiCode") String chsiCode) {
+            @RequestParam("verCode") String verCode) {
 
         WxMaJscode2SessionResult register = null;
         try {
-            register = userInfoService.register(stuId, code, chsiCode);
+            register = userInfoService.register(stuId, code, verCode);
         } catch (WxErrorException e) {
             return new R<>(ResultCode.WECHAT_ERROR, null);
         } catch (MailCodeWrongException e) {

@@ -38,9 +38,10 @@ public class UserInfoServiceImpl implements UserInfoService {
     private final StringRedisTemplate stringRedisTemplate;
 
     @Override
-    public WxMaJscode2SessionResult register(String stuId, String code, String chsiCode) throws WxErrorException,MailCodeWrongException {
+    public WxMaJscode2SessionResult register(String stuId, String code, String verCode) throws WxErrorException,MailCodeWrongException {
         //验证邮箱
-        if (!code.equals(stringRedisTemplate.opsForValue().get(RedisConstant.MAIL_CODE_PREFIX + stuId))) {
+        String realCode = stringRedisTemplate.opsForValue().get(RedisConstant.MAIL_CODE_PREFIX + stuId);
+        if (!verCode.equals(realCode)) {
             throw new MailCodeWrongException();
         }
         WxMaJscode2SessionResult session;
