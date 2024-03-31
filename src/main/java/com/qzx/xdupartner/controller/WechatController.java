@@ -9,12 +9,14 @@ import com.qzx.xdupartner.entity.vo.R;
 import com.qzx.xdupartner.entity.vo.ResultCode;
 import com.qzx.xdupartner.exception.MailCodeWrongException;
 import com.qzx.xdupartner.service.UserInfoService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.error.WxErrorException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
+@Api
 @Slf4j
 @RestController
 @RequestMapping("/wx/user")
@@ -27,6 +29,7 @@ public class WechatController {
     /**
      * 注册接口
      */
+    @ApiOperation("")
     @GetMapping("/register")
     public R<WxMaJscode2SessionResult> registor(
             @RequestParam("stuId") String stuId,
@@ -47,6 +50,7 @@ public class WechatController {
     /**
      * login接口
      */
+    @ApiOperation("")
     @GetMapping("/login")
     public R<WxMaJscode2SessionResult> login(@RequestParam("code") String code) {
         WxMaJscode2SessionResult login = userInfoService.login(code);
@@ -61,6 +65,7 @@ public class WechatController {
      * 获取用户信息接口
      * </pre>
      */
+    @ApiOperation("")
     @PostMapping("/getUserInfo")
     public R<WxMaUserInfo> getUserInfo(@RequestBody WxUserInfo userInfo) {
         return new R<>(ResultCode.SUCCESS, userInfoService.getUserInfo(userInfo));
