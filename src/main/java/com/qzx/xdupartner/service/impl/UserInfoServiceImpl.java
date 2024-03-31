@@ -8,8 +8,8 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
 import com.qzx.xdupartner.constant.RedisConstant;
 import com.qzx.xdupartner.entity.User;
-import com.qzx.xdupartner.entity.dto.SchoolInfoDto;
 import com.qzx.xdupartner.entity.dto.WxUserInfo;
+import com.qzx.xdupartner.exception.MailCodeWrongException;
 import com.qzx.xdupartner.service.UserInfoService;
 import com.qzx.xdupartner.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +19,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author 成大事
@@ -37,42 +38,24 @@ public class UserInfoServiceImpl implements UserInfoService {
     private final StringRedisTemplate stringRedisTemplate;
 
     @Override
-    public WxMaJscode2SessionResult register(String code, String chsiCode) {
-        Future<SchoolInfoDto> schoolInfoDtoFuture = null;
-//        executor.submit(() -> VerifyUtil.visitData(chsiCode));
-        AtomicReference<WxMaJscode2SessionResult> session = new AtomicReference<>();
-        Future<AtomicReference<WxMaJscode2SessionResult>> sessionResultFuture = executor.submit(() -> {
-            try {
-                session.set(wxMaService.getUserService().getSessionInfo(code));
-                log.info(session.get().getSessionKey());
-                log.info(session.get().getOpenid());
-                return session;
-            } catch (WxErrorException e) {
-                log.error(e.getMessage(), e);
-                return null;
-            } finally {
-                WxMaConfigHolder.remove();//清理ThreadLocal
-            }
-        });
-        SchoolInfoDto schoolInfoDto;
-        WxMaJscode2SessionResult wxMaJscode2SessionResult;
-        try {
-            schoolInfoDto = schoolInfoDtoFuture.get(5, TimeUnit.SECONDS);
-            wxMaJscode2SessionResult = sessionResultFuture.get(5, TimeUnit.SECONDS).get();
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            throw new RuntimeException(e);
+    public WxMaJscode2SessionResult register(String stuId, String code, String chsiCode) throws WxErrorException,MailCodeWrongException {
+        //验证邮箱
+        if (!code.equals(stringRedisTemplate.opsForValue().get(RedisConstant.MAIL_CODE_PREFIX + stuId))) {
+            throw new MailCodeWrongException();
         }
-        if (schoolInfoDto == null || wxMaJscode2SessionResult == null) {
-            return null;
+        WxMaJscode2SessionResult session;
+        try {
+            session = wxMaService.getUserService().getSessionInfo(code);
+            log.info(session.getSessionKey());
+            log.info(session.getOpenid());
+        } finally {
+            WxMaConfigHolder.remove();//清理ThreadLocal
         }
         //TODO 可以增加自己的逻辑，关联业务相关数据
-        User user = userService.insertNewUser(wxMaJscode2SessionResult.getOpenid(), schoolInfoDto.getStuId());
-        user.setSessionKey(session.get().getSessionKey());
-        stringRedisTemplate.opsForValue().set(RedisConstant.LOGIN_PREFIX + session.get().getSessionKey(),
-                JSONUtil.toJsonStr(user),
-                RedisConstant.LOGIN_VALID_TTL,
-                TimeUnit.DAYS);
-        return wxMaJscode2SessionResult;
+        User user = userService.insertNewUser(session.getOpenid(), stuId);
+        user.setSessionKey(session.getSessionKey());
+        stringRedisTemplate.opsForValue().set(RedisConstant.LOGIN_PREFIX + session.getSessionKey(), JSONUtil.toJsonStr(user), RedisConstant.LOGIN_VALID_TTL, TimeUnit.DAYS);
+        return session;
     }
 
     @Override
@@ -87,9 +70,8 @@ public class UserInfoServiceImpl implements UserInfoService {
                 return null;
             }
             user.setSessionKey(session.getSessionKey());
-            User finalUser = user;
             stringRedisTemplate.opsForValue().set(RedisConstant.LOGIN_PREFIX + session.getSessionKey(),
-                    JSONUtil.toJsonStr(finalUser),
+                    JSONUtil.toJsonStr(user),
                     RedisConstant.LOGIN_VALID_TTL,
                     TimeUnit.DAYS);
             return session;

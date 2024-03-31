@@ -7,9 +7,11 @@ import cn.hutool.core.util.ObjectUtil;
 import com.qzx.xdupartner.entity.dto.WxUserInfo;
 import com.qzx.xdupartner.entity.vo.R;
 import com.qzx.xdupartner.entity.vo.ResultCode;
+import com.qzx.xdupartner.exception.MailCodeWrongException;
 import com.qzx.xdupartner.service.UserInfoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.chanjar.weixin.common.error.WxErrorException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,12 +28,18 @@ public class WechatController {
      * 注册接口
      */
     @GetMapping("/register")
-    public R<WxMaJscode2SessionResult> registor(@RequestParam("code") String code,
-                                                @RequestParam("chsiCode") String chsiCode) {
+    public R<WxMaJscode2SessionResult> registor(
+            @RequestParam("stuId") String stuId,
+            @RequestParam("code") String code,
+            @RequestParam("chsiCode") String chsiCode) {
 
-        WxMaJscode2SessionResult register = userInfoService.register(code, chsiCode);
-        if (ObjectUtil.isNull(register)) {
-            return new R<>(ResultCode.FAILED, null);
+        WxMaJscode2SessionResult register = null;
+        try {
+            register = userInfoService.register(stuId, code, chsiCode);
+        } catch (WxErrorException e) {
+            return new R<>(ResultCode.WECHAT_ERROR, null);
+        } catch (MailCodeWrongException e) {
+            return new R<>(ResultCode.MAIL_CODE_ERROR, null);
         }
         return new R<>(ResultCode.SUCCESS, register);
     }

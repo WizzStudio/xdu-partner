@@ -1,4 +1,16 @@
 spring:
+  mail:
+      username:1500418656@qq.com
+      #邮箱授权码，百度一下很简单
+      password:
+      host: smtp.qq.com
+      default-encoding: utf-8
+      #开启加密验证
+      properties:
+        mail:
+          smtp:
+            ssl:
+              enable: ture
   main:
     allow-bean-definition-overriding: true
   redis:
@@ -33,3 +45,4 @@ wx:
     configs:
       - appid: #微信小程序的appid
         secret: #微信小程序的Secret
+

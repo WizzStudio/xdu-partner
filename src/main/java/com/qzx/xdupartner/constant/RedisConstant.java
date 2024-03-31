@@ -11,6 +11,7 @@ public class RedisConstant {
     public static final int USER_BLOG_SET_TIME = 2 * 60;
 
     public static final String LOGIN_PREFIX = "user:login:";
+    public static final String MAIL_CODE_PREFIX = "user:mail:code";
     public static final Integer LOGIN_VALID_TTL = 24 * 14;
     public static final String DEFAULT_NICKNAME_INCREMENT = "default:nickname:";
     public static final String OFFLINE_MESSAGE = ":offline:message:from:";
