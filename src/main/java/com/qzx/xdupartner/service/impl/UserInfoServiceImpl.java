@@ -12,7 +12,6 @@ import com.qzx.xdupartner.entity.dto.SchoolInfoDto;
 import com.qzx.xdupartner.entity.dto.WxUserInfo;
 import com.qzx.xdupartner.service.UserInfoService;
 import com.qzx.xdupartner.service.UserService;
-import com.qzx.xdupartner.util.VerifyUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.error.WxErrorException;
@@ -37,15 +36,10 @@ public class UserInfoServiceImpl implements UserInfoService {
     private final UserService userService;
     private final StringRedisTemplate stringRedisTemplate;
 
-    /**
-     * 登录
-     *
-     * @param code code
-     * @return WxMaJscode2SessionResult
-     */
     @Override
     public WxMaJscode2SessionResult register(String code, String chsiCode) {
-        Future<SchoolInfoDto> schoolInfoDtoFuture = executor.submit(() -> VerifyUtil.visitData(chsiCode));
+        Future<SchoolInfoDto> schoolInfoDtoFuture = null;
+//        executor.submit(() -> VerifyUtil.visitData(chsiCode));
         AtomicReference<WxMaJscode2SessionResult> session = new AtomicReference<>();
         Future<AtomicReference<WxMaJscode2SessionResult>> sessionResultFuture = executor.submit(() -> {
             try {

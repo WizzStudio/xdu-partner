@@ -3,6 +3,7 @@ package com.qzx.xdupartner.controller;
 import cn.binarywang.wx.miniapp.api.WxMaService;
 import cn.binarywang.wx.miniapp.bean.WxMaJscode2SessionResult;
 import cn.binarywang.wx.miniapp.bean.WxMaUserInfo;
+import cn.hutool.core.util.ObjectUtil;
 import com.qzx.xdupartner.entity.dto.WxUserInfo;
 import com.qzx.xdupartner.entity.vo.R;
 import com.qzx.xdupartner.entity.vo.ResultCode;
@@ -27,15 +28,24 @@ public class WechatController {
     @GetMapping("/register")
     public R<WxMaJscode2SessionResult> registor(@RequestParam("code") String code,
                                                 @RequestParam("chsiCode") String chsiCode) {
-        return new R<>(ResultCode.SUCCESS, userInfoService.register(code, chsiCode));
+
+        WxMaJscode2SessionResult register = userInfoService.register(code, chsiCode);
+        if (ObjectUtil.isNull(register)) {
+            return new R<>(ResultCode.FAILED, null);
+        }
+        return new R<>(ResultCode.SUCCESS, register);
     }
 
     /**
      * login接口
      */
     @GetMapping("/login")
-    public R<WxMaJscode2SessionResult> registor(@RequestParam("code") String code) {
-        return new R<>(ResultCode.SUCCESS, userInfoService.login(code));
+    public R<WxMaJscode2SessionResult> login(@RequestParam("code") String code) {
+        WxMaJscode2SessionResult login = userInfoService.login(code);
+        if (ObjectUtil.isNull(login)) {
+            return new R<>(ResultCode.FAILED, null);
+        }
+        return new R<>(ResultCode.SUCCESS, login);
     }
 
     /**
