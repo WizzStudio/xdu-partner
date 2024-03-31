@@ -38,7 +38,8 @@ public class UserInfoServiceImpl implements UserInfoService {
     private final StringRedisTemplate stringRedisTemplate;
 
     @Override
-    public WxMaJscode2SessionResult register(String stuId, String code, String verCode) throws WxErrorException,MailCodeWrongException {
+    public WxMaJscode2SessionResult register(String stuId, String code, String verCode) throws WxErrorException,
+            MailCodeWrongException {
         //验证邮箱
         String realCode = stringRedisTemplate.opsForValue().get(RedisConstant.MAIL_CODE_PREFIX + stuId);
         if (!verCode.equals(realCode)) {
@@ -55,7 +56,8 @@ public class UserInfoServiceImpl implements UserInfoService {
         //TODO 可以增加自己的逻辑，关联业务相关数据
         User user = userService.insertNewUser(session.getOpenid(), stuId);
         user.setSessionKey(session.getSessionKey());
-        stringRedisTemplate.opsForValue().set(RedisConstant.LOGIN_PREFIX + session.getSessionKey(), JSONUtil.toJsonStr(user), RedisConstant.LOGIN_VALID_TTL, TimeUnit.DAYS);
+        stringRedisTemplate.opsForValue().set(RedisConstant.LOGIN_PREFIX + session.getSessionKey(),
+                JSONUtil.toJsonStr(user), RedisConstant.LOGIN_VALID_TTL, TimeUnit.DAYS);
         return session;
     }
 

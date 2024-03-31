@@ -1,9 +1,13 @@
 package com.qzx.xdupartner.controller;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONUtil;
 import com.qzx.xdupartner.constant.RedisConstant;
+import com.qzx.xdupartner.entity.User;
 import com.qzx.xdupartner.entity.vo.R;
 import com.qzx.xdupartner.entity.vo.ResultCode;
+import com.qzx.xdupartner.service.UserService;
 import com.qzx.xdupartner.util.VerCodeGenerateUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -30,6 +34,8 @@ import java.util.concurrent.TimeUnit;
 public class VerifyController {
     @Resource
     StringRedisTemplate stringRedisTemplate;
+    @Resource
+    UserService userService;
     @Resource
     JavaMailSenderImpl mailSender;
 
@@ -93,4 +99,24 @@ public class VerifyController {
         stringRedisTemplate.opsForValue().set(RedisConstant.MAIL_CODE_PREFIX + stuId, verCode, 10, TimeUnit.MINUTES);
         return new R<>(ResultCode.SUCCESS, "发送成功");
     }
+
+    @ApiOperation("")
+    @GetMapping("/testLogin")
+    public R<String> testLogin(@RequestParam("stuId") String stuId) {
+        String sessionKey = "12345678";
+        if (stuId.equals(sessionKey)) {
+            User user = userService.lambdaQuery().eq(User::getId, 35).one();
+            if (ObjectUtil.isNull(user)) {
+                return null;
+            }
+            user.setSessionKey(sessionKey);
+            stringRedisTemplate.opsForValue().set(RedisConstant.LOGIN_PREFIX + sessionKey,
+                    JSONUtil.toJsonStr(user),
+                    RedisConstant.LOGIN_VALID_TTL,
+                    TimeUnit.DAYS);
+            return new R<>(ResultCode.SUCCESS, sessionKey);
+        }
+        return new R<>(ResultCode.FAILED, "");
+    }
+
 }

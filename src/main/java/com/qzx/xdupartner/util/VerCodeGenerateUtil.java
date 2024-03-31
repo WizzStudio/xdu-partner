@@ -13,8 +13,10 @@ public class VerCodeGenerateUtil {
     //邮箱字符串提取，去除了容易混淆的几个字符比如0,o~
     private static final String SYMBOLS = "23456789";
     private static final Random RANDOM = new SecureRandom();
+
     /**
      * 生成4位随机验证码
+     *
      * @return 返回4位验证码
      */
     public static String getVerCode() {

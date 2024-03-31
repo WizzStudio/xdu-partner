@@ -8,7 +8,8 @@ import me.chanjar.weixin.common.error.WxErrorException;
 
 public interface UserInfoService {
 
-    WxMaJscode2SessionResult register(String stuId, String code, String verCode) throws WxErrorException, MailCodeWrongException;
+    WxMaJscode2SessionResult register(String stuId, String code, String verCode) throws WxErrorException,
+            MailCodeWrongException;
 
     WxMaJscode2SessionResult login(String code);
 
