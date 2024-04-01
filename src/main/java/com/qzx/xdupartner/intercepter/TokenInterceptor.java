@@ -26,9 +26,9 @@ public class TokenInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String token = request.getHeader("token");
         //解析token->从redis拿出User->放入UserHolder
-//        if (StrUtil.isNotBlank(token)) {
-//            String redisKey = RedisConstant.LOGIN_PREFIX + token;
-            String redisKey = RedisConstant.LOGIN_PREFIX + "12345678";
+        if (StrUtil.isNotBlank(token)) {
+            String redisKey = RedisConstant.LOGIN_PREFIX + token;
+//            String redisKey = RedisConstant.LOGIN_PREFIX + "12345678";
             User loginUser = JSONUtil.toBean(stringRedisTemplate.opsForValue().get(redisKey), User.class);
             if (Objects.isNull(loginUser)) {
                 response.setStatus(401);
@@ -38,7 +38,7 @@ public class TokenInterceptor implements HandlerInterceptor {
             }
             loginUser.setSessionKey(token);
             UserHolder.saveUser(loginUser);
-//        }
+        }
         return true;
     }
 

@@ -21,7 +21,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.validation.constraints.NotNull;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -63,6 +66,16 @@ public class UserController {
     public R<UserInfoVo> ofMe() {
         User user = userService.getById(UserHolder.getUserId());
         return new R<>(ResultCode.SUCCESS, UserUtil.getUserInfoVo(user));
+    }
+
+    @PostMapping(value = "/login", produces = "application/json;charset=utf-8")
+    public Map<String, Object> login(@NotNull(message = "学号不能为空") @RequestParam("stuId") String stuId,
+                                     @NotNull(message = "密码不能为空") @RequestParam("password") String password) {
+        HashMap<String, Object> res = new HashMap<>(3);
+        res.put("msg", "登录成功");
+        res.put("token", "12345678");
+        res.put("userId", 35);
+        return res;
     }
 
     @ApiOperation("")
