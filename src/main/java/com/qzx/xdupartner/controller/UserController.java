@@ -21,7 +21,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,12 +68,12 @@ public class UserController {
     }
 
     @PostMapping(value = "/login", produces = "application/json;charset=utf-8")
-    public Map<String, Object> login() {
+    public R<Map<String, Object>> login() {
         HashMap<String, Object> res = new HashMap<>(3);
         res.put("msg", "登录成功");
         res.put("token", "12345678");
         res.put("userId", 35);
-        return res;
+        return new R<>(ResultCode.SUCCESS, res);
     }
 
     @ApiOperation("")
