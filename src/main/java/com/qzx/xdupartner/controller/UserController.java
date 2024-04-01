@@ -1,6 +1,7 @@
 package com.qzx.xdupartner.controller;
 
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
 import com.qzx.xdupartner.constant.RedisConstant;
 import com.qzx.xdupartner.entity.User;
@@ -69,6 +70,15 @@ public class UserController {
 
     @PostMapping(value = "/login", produces = "application/json;charset=utf-8")
     public R<Map<String, Object>> login() {
+        User user = userService.lambdaQuery().eq(User::getId, 35).one();
+        if (ObjectUtil.isNull(user)) {
+            return null;
+        }
+        user.setSessionKey("12345678");
+        stringRedisTemplate.opsForValue().set(RedisConstant.LOGIN_PREFIX + "12345678",
+                JSONUtil.toJsonStr(user),
+                RedisConstant.LOGIN_VALID_TTL,
+                TimeUnit.DAYS);
         HashMap<String, Object> res = new HashMap<>(3);
         res.put("msg", "登录成功");
         res.put("token", "12345678");
