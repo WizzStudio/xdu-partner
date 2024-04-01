@@ -79,6 +79,7 @@ public class UserController {
                 JSONUtil.toJsonStr(user),
                 RedisConstant.LOGIN_VALID_TTL,
                 TimeUnit.DAYS);
+        UserHolder.saveUser(user);
         HashMap<String, Object> res = new HashMap<>(3);
         res.put("msg", "登录成功");
         res.put("token", "12345678");
