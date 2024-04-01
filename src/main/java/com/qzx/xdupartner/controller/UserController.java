@@ -69,8 +69,7 @@ public class UserController {
     }
 
     @PostMapping(value = "/login", produces = "application/json;charset=utf-8")
-    public Map<String, Object> login(@NotNull(message = "学号不能为空") @RequestParam("stuId") String stuId,
-                                     @NotNull(message = "密码不能为空") @RequestParam("password") String password) {
+    public Map<String, Object> login() {
         HashMap<String, Object> res = new HashMap<>(3);
         res.put("msg", "登录成功");
         res.put("token", "12345678");

@@ -31,7 +31,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
             "/blog/query**",
             "/blog/readBlog",
             "/blog/search*",
-            "/user/testLogin",
+            "/user/login",
             "/wx/user/**"
 //            "/api/file/upload",
 //            "/upload/**"
