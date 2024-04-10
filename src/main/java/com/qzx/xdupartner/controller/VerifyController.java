@@ -103,20 +103,30 @@ public class VerifyController {
     @ApiOperation("")
     @GetMapping("/testLogin")
     public R<String> testLogin(@RequestParam("stuId") String stuId) {
-        String sessionKey = "12345678";
-        if (stuId.equals(sessionKey)) {
+        String sessionKey1 = "12345678";
+        String sessionKey2 = "123456789";
+        if (stuId.equals(sessionKey1)) {
             User user = userService.lambdaQuery().eq(User::getId, 35).one();
-            if (ObjectUtil.isNull(user)) {
-                return null;
+            return getStringR(sessionKey1, user);
+        } else if (stuId.equals(sessionKey2)) {
+            if (stuId.equals(sessionKey2)) {
+                User user = userService.lambdaQuery().eq(User::getId, 14).one();
+                return getStringR(sessionKey2, user);
             }
-            user.setSessionKey(sessionKey);
-            stringRedisTemplate.opsForValue().set(RedisConstant.LOGIN_PREFIX + sessionKey,
-                    JSONUtil.toJsonStr(user),
-                    RedisConstant.LOGIN_VALID_TTL,
-                    TimeUnit.DAYS);
-            return new R<>(ResultCode.SUCCESS, sessionKey);
         }
         return new R<>(ResultCode.FAILED, "");
+    }
+
+    private R<String> getStringR(String sessionKey2, User user) {
+        if (ObjectUtil.isNull(user)) {
+            return null;
+        }
+        user.setSessionKey(sessionKey2);
+        stringRedisTemplate.opsForValue().set(RedisConstant.LOGIN_PREFIX + sessionKey2,
+                JSONUtil.toJsonStr(user),
+                RedisConstant.LOGIN_VALID_TTL,
+                TimeUnit.DAYS);
+        return new R<>(ResultCode.SUCCESS, sessionKey2);
     }
 
 }
