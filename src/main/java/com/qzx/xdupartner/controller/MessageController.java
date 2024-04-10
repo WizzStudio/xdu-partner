@@ -51,8 +51,8 @@ public class MessageController {
 
     @ApiOperation("")
     @GetMapping(value = "/connect", produces = "application/json;charset=utf-8")
-    public List<MessageVo> connect() {
-        return messageService.connect();
+    public R<List<MessageVo>> connect() {
+        return new R<>(ResultCode.SUCCESS, messageService.connect());
     }
 
     @ApiOperation("")
