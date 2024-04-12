@@ -64,7 +64,7 @@ public class FileStoreController {
         // 创建ossClient实例。
         OSS ossClient = new OSSClientBuilder().build(endpoint, accessId, accessKey);
         try {
-            long expireTime = 30;
+            long expireTime = 300;
             long expireEndTime = System.currentTimeMillis() + expireTime * 1000;
             Date expiration = new Date(expireEndTime);
             PolicyConditions policyConds = new PolicyConditions();
