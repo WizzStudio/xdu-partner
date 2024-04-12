@@ -112,7 +112,7 @@ public class VerifyController {
             User user = userService.lambdaQuery().eq(User::getId, 14).one();
             return getStringR(sessionKey2, user);
         }
-        return new R<>(ResultCode.SUCCESS, "");
+        return new R<>(ResultCode.FAILED, "");
     }
 
     private R<String> getStringR(String sessionKey, User user) {
