@@ -114,7 +114,7 @@ public class VerifyController {
                 return getStringR(sessionKey2, user);
             }
         }
-        return new R<>(ResultCode.FAILED, "");
+        return new R<>(ResultCode.SUCCESS, "");
     }
 
     private R<String> getStringR(String sessionKey2, User user) {
