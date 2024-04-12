@@ -109,24 +109,22 @@ public class VerifyController {
             User user = userService.lambdaQuery().eq(User::getId, 35).one();
             return getStringR(sessionKey1, user);
         } else if (stuId.equals(sessionKey2)) {
-            if (stuId.equals(sessionKey2)) {
-                User user = userService.lambdaQuery().eq(User::getId, 14).one();
-                return getStringR(sessionKey2, user);
-            }
+            User user = userService.lambdaQuery().eq(User::getId, 14).one();
+            return getStringR(sessionKey2, user);
         }
         return new R<>(ResultCode.SUCCESS, "");
     }
 
-    private R<String> getStringR(String sessionKey2, User user) {
+    private R<String> getStringR(String sessionKey, User user) {
         if (ObjectUtil.isNull(user)) {
             return null;
         }
-        user.setSessionKey(sessionKey2);
-        stringRedisTemplate.opsForValue().set(RedisConstant.LOGIN_PREFIX + sessionKey2,
+        user.setSessionKey(sessionKey);
+        stringRedisTemplate.opsForValue().set(RedisConstant.LOGIN_PREFIX + sessionKey,
                 JSONUtil.toJsonStr(user),
                 RedisConstant.LOGIN_VALID_TTL,
                 TimeUnit.DAYS);
-        return new R<>(ResultCode.SUCCESS, sessionKey2);
+        return new R<>(ResultCode.SUCCESS, sessionKey);
     }
 
 }
