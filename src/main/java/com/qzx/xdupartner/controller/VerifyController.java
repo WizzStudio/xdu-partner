@@ -60,28 +60,7 @@ public class VerifyController {
             helper.setSubject("【仙电搭子】 注册账号验证码");
             //因为设置了邮件格式所以html标签有点多，后面的ture为支持识别html标签
             //想要不一样的邮件格式，百度搜索一个html编译器，自我定制。
-            helper.setText("<h3>\n" +
-                    "\t<span style=\"font-size:16px;\">亲爱的用户：</span> \n" +
-                    "</h3>\n" +
-                    "<p>\n" +
-                    "\t<span style=\"font-size:14px;\">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style=\"font-size:14px;" +
-                    "\">&nbsp; <span style=\"font-size:16px;\">&nbsp;&nbsp;您正在进行邮箱验证，本次请求的验证码为：<span " +
-                    "style=\"font-size:24px;color:#FFE500;\">" + verCode + "</span>,本验证码10分钟内有效，请在10" +
-                    "分钟内完成验证。（请勿泄露此验证码）如非本人操作，请忽略该邮件。(这是一封自动发送的邮件，请不要直接回复）</span></span>\n" +
-                    "</p>\n" +
-                    "<p style=\"text-align:right;\">\n" +
-                    "\t<span style=\"background-color:#FFFFFF;font-size:16px;color:#000000;\"><span " +
-                    "style=\"color:#000000;font-size:16px;background-color:#FFFFFF;\"><span class=\"token string\" " +
-                    "style=\"font-family:&quot;font-size:16px;color:#000000;line-height:normal !important;" +
-                    "background-color:#FFFFFF;\">仙电搭子社区</span></span></span> \n" +
-                    "</p>\n" +
-                    "<p style=\"text-align:right;\">\n" +
-                    "\t<span style=\"background-color:#FFFFFF;font-size:14px;\"><span style=\"color:#FF9900;" +
-                    "font-size:18px;\"><span class=\"token string\" style=\"font-family:&quot;font-size:16px;" +
-                    "color:#000000;line-height:normal !important;\"><span style=\"font-size:16px;color:#000000;" +
-                    "background-color:#FFFFFF;\">" + time + "</span><span style=\"font-size:18px;color:#000000;" +
-                    "background-color:#FFFFFF;\"></span></span></span></span> \n" +
-                    "</p>", true);
+            helper.setText("<h3>\n" + "\t<span style=\"font-size:16px;\">亲爱的用户：</span> \n" + "</h3>\n" + "<p>\n" + "\t<span style=\"font-size:14px;\">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style=\"font-size:14px;" + "\">&nbsp; <span style=\"font-size:16px;\">&nbsp;&nbsp;您正在进行邮箱验证，本次请求的验证码为：<span " + "style=\"font-size:24px;color:#FFE500;\">" + verCode + "</span>,本验证码10分钟内有效，请在10" + "分钟内完成验证。（请勿泄露此验证码）如非本人操作，请忽略该邮件。(这是一封自动发送的邮件，请不要直接回复）</span></span>\n" + "</p>\n" + "<p style=\"text-align:right;\">\n" + "\t<span style=\"background-color:#FFFFFF;font-size:16px;color:#000000;\"><span " + "style=\"color:#000000;font-size:16px;background-color:#FFFFFF;\"><span class=\"token string\" " + "style=\"font-family:&quot;font-size:16px;color:#000000;line-height:normal !important;" + "background-color:#FFFFFF;\">仙电搭子社区</span></span></span> \n" + "</p>\n" + "<p style=\"text-align:right;\">\n" + "\t<span style=\"background-color:#FFFFFF;font-size:14px;\"><span style=\"color:#FF9900;" + "font-size:18px;\"><span class=\"token string\" style=\"font-family:&quot;font-size:16px;" + "color:#000000;line-height:normal !important;\"><span style=\"font-size:16px;color:#000000;" + "background-color:#FFFFFF;\">" + time + "</span><span style=\"font-size:18px;color:#000000;" + "background-color:#FFFFFF;\"></span></span></span></span> \n" + "</p>", true);
             //收件人
             helper.setTo(stuId + "@stu.xidian.edu.cn");
             //发送方
@@ -120,10 +99,7 @@ public class VerifyController {
             return null;
         }
         user.setSessionKey(sessionKey);
-        stringRedisTemplate.opsForValue().set(RedisConstant.LOGIN_PREFIX + sessionKey,
-                JSONUtil.toJsonStr(user),
-                RedisConstant.LOGIN_VALID_TTL,
-                TimeUnit.DAYS);
+        stringRedisTemplate.opsForValue().set(RedisConstant.LOGIN_PREFIX + sessionKey, JSONUtil.toJsonStr(user), RedisConstant.LOGIN_VALID_TTL, TimeUnit.DAYS);
         return new R<>(ResultCode.SUCCESS, sessionKey);
     }
 
