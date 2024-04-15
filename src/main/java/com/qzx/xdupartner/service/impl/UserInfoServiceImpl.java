@@ -7,6 +7,7 @@ import cn.binarywang.wx.miniapp.util.WxMaConfigHolder;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
 import com.qzx.xdupartner.constant.RedisConstant;
+import com.qzx.xdupartner.entity.Result;
 import com.qzx.xdupartner.entity.User;
 import com.qzx.xdupartner.entity.dto.WxUserInfo;
 import com.qzx.xdupartner.exception.MailCodeWrongException;
@@ -38,7 +39,7 @@ public class UserInfoServiceImpl implements UserInfoService {
     private final StringRedisTemplate stringRedisTemplate;
 
     @Override
-    public WxMaJscode2SessionResult register(String stuId, String code, String verCode) throws WxErrorException,
+    public Result register(String stuId, String code, String verCode) throws WxErrorException,
             MailCodeWrongException {
         //验证邮箱
         String realCode = stringRedisTemplate.opsForValue().get(RedisConstant.MAIL_CODE_PREFIX + stuId);
@@ -58,11 +59,11 @@ public class UserInfoServiceImpl implements UserInfoService {
         user.setSessionKey(session.getSessionKey());
         stringRedisTemplate.opsForValue().set(RedisConstant.LOGIN_PREFIX + session.getSessionKey(),
                 JSONUtil.toJsonStr(user), RedisConstant.LOGIN_VALID_TTL, TimeUnit.DAYS);
-        return session;
+        return new Result(session, user.getId());
     }
 
     @Override
-    public WxMaJscode2SessionResult login(String code) {
+    public Result login(String code) {
         try {
             WxMaJscode2SessionResult session = wxMaService.getUserService().getSessionInfo(code);
             log.info(session.getSessionKey());
@@ -77,7 +78,7 @@ public class UserInfoServiceImpl implements UserInfoService {
                     JSONUtil.toJsonStr(user),
                     RedisConstant.LOGIN_VALID_TTL,
                     TimeUnit.DAYS);
-            return session;
+            return new Result(session, user.getId());
         } catch (WxErrorException e) {
             log.error(e.getMessage(), e);
             return null;

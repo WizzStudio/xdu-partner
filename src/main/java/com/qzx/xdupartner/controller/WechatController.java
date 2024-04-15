@@ -1,9 +1,9 @@
 package com.qzx.xdupartner.controller;
 
 import cn.binarywang.wx.miniapp.api.WxMaService;
-import cn.binarywang.wx.miniapp.bean.WxMaJscode2SessionResult;
 import cn.binarywang.wx.miniapp.bean.WxMaUserInfo;
 import cn.hutool.core.util.ObjectUtil;
+import com.qzx.xdupartner.entity.Result;
 import com.qzx.xdupartner.entity.dto.WxUserInfo;
 import com.qzx.xdupartner.entity.vo.R;
 import com.qzx.xdupartner.entity.vo.ResultCode;
@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.error.WxErrorException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
 @Api
 @Slf4j
 @RestController
@@ -31,12 +32,12 @@ public class WechatController {
      */
     @ApiOperation("")
     @GetMapping("/register")
-    public R<WxMaJscode2SessionResult> registor(
+    public R<Result> registor(
             @RequestParam("stuId") String stuId,
             @RequestParam("code") String code,
             @RequestParam("verCode") String verCode) {
 
-        WxMaJscode2SessionResult register = null;
+        Result register = null;
         try {
             register = userInfoService.register(stuId, code, verCode);
         } catch (WxErrorException e) {
@@ -44,6 +45,7 @@ public class WechatController {
         } catch (MailCodeWrongException e) {
             return new R<>(ResultCode.MAIL_CODE_ERROR, null);
         }
+
         return new R<>(ResultCode.SUCCESS, register);
     }
 
@@ -52,8 +54,8 @@ public class WechatController {
      */
     @ApiOperation("")
     @GetMapping("/login")
-    public R<WxMaJscode2SessionResult> login(@RequestParam("code") String code) {
-        WxMaJscode2SessionResult login = userInfoService.login(code);
+    public R<Result> login(@RequestParam("code") String code) {
+        Result login = userInfoService.login(code);
         if (ObjectUtil.isNull(login)) {
             return new R<>(ResultCode.FAILED, null);
         }
@@ -71,3 +73,4 @@ public class WechatController {
         return new R<>(ResultCode.SUCCESS, userInfoService.getUserInfo(userInfo));
     }
 }
+
