@@ -11,8 +11,8 @@ public enum ResultCode implements StatusCode {
     MAIL_CODE_ERROR(2004, "邮箱验证码错误"),
     WECHAT_ERROR(2005, "微信登录错误"),
     MAIL_SEND_ERROR(2006, "邮箱验证码发送失败"),
-    RESPONSE_PACK_ERROR(2003, "response返回包装失败");
-
+    RESPONSE_PACK_ERROR(2007, "response返回包装失败"),
+    STU_ID_ERROR(2008,"学号格式错误");
     private final int code;
     private final String msg;
 
