@@ -8,7 +8,7 @@
         <result column="nick_name" property="nickName"/>
         <result column="major_name" property="majorName"/>
         <result column="stu_id" property="stuId"/>
-        <result column="password" property="password"/>
+        <result column="phone" property="phone"/>
         <result column="is_admin" property="isAdmin"/>
         <result column="qq" property="qq"/>
         <result column="icon" property="icon"/>
@@ -19,13 +19,13 @@
         <result column="constellation" property="constellation"/>
         <result column="creat_time" property="creatTime"/>
         <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id
-        , nick_name, major_name, stu_id, password, is_admin, qq, icon, picture, my_description, high_tag, mbti,
-        constellation, creat_time, update_time
+        id, nick_name, major_name, stu_id, phone, is_admin, qq, icon, picture, my_description, high_tag, mbti,
+        constellation, creat_time, update_time, is_deleted
     </sql>
 
 </mapper>

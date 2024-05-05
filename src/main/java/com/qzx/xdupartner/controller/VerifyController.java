@@ -1,34 +1,30 @@
 package com.qzx.xdupartner.controller;
 
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.ReUtil;
+import cn.hutool.core.util.PhoneUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.qzx.xdupartner.constant.RedisConstant;
 import com.qzx.xdupartner.entity.User;
+import com.qzx.xdupartner.entity.dto.ManualVerifyDto;
+import com.qzx.xdupartner.entity.dto.PhoneAuthDto;
+import com.qzx.xdupartner.entity.vo.LoginVo;
 import com.qzx.xdupartner.entity.vo.R;
 import com.qzx.xdupartner.entity.vo.ResultCode;
 import com.qzx.xdupartner.service.MailService;
+import com.qzx.xdupartner.service.PhoneService;
 import com.qzx.xdupartner.service.UserService;
+import com.qzx.xdupartner.util.RUtil;
+import com.qzx.xdupartner.util.UserHolder;
 import com.qzx.xdupartner.util.VerCodeGenerateUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RegExUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.mail.MailException;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
-import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 @Api
@@ -43,6 +39,10 @@ public class VerifyController {
     @Resource
     MailService mailService;
 
+    @Resource
+    PhoneService phoneService;
+
+    @Deprecated
     @ApiOperation("")
     @GetMapping("/sendCode")
     public R<String> sendCode(@RequestParam("stuId") String stuId) {
@@ -50,16 +50,17 @@ public class VerifyController {
             return new R<>(ResultCode.STU_ID_ERROR);
         }
         String verCode = VerCodeGenerateUtil.getVerCode();
-        boolean isSend = mailService.sendMail(stuId, verCode);
+        boolean isSend = mailService.sendVerifyEmail(stuId, verCode);
         if (isSend) {
             //发送验证码成功
             stringRedisTemplate.opsForValue().set(RedisConstant.MAIL_CODE_PREFIX + stuId, verCode, 10,
                     TimeUnit.MINUTES);
-            return new R<>(ResultCode.SUCCESS, "发送成功");
+            return RUtil.success("发送成功");
         }
         return new R<>(ResultCode.MAIL_SEND_ERROR);
     }
 
+    @Deprecated
     @ApiOperation("")
     @GetMapping("/testLogin")
     public R<String> testLogin(@RequestParam("stuId") String stuId) {
@@ -82,12 +83,60 @@ public class VerifyController {
         user.setSessionKey(sessionKey);
         stringRedisTemplate.opsForValue().set(RedisConstant.LOGIN_PREFIX + sessionKey, JSONUtil.toJsonStr(user),
                 RedisConstant.LOGIN_VALID_TTL, TimeUnit.DAYS);
-        return new R<>(ResultCode.SUCCESS, sessionKey);
+        return RUtil.success(sessionKey);
     }
 
-    public static void main(String[] args) {
-        if ((StrUtil.isNumeric("21009200334") && "21009200334".length() == 11)) {
-            System.out.println("23444");
+    @ApiOperation("")
+    @GetMapping("/email/send")
+    public R<String> sendEmailCode(@RequestParam String stuId) {
+        if (!(StrUtil.isNumeric(stuId) && stuId.length() == 11)) {
+            return new R<>(ResultCode.STU_ID_ERROR);
         }
+        if (userService.checkUserIsVerified(UserHolder.getUserId())) {
+            return RUtil.error(ResultCode.HAS_VERIFIED_ERROR);
+        }
+        String verCode = VerCodeGenerateUtil.getVerCode();
+        return mailService.sendVerifyEmail(stuId, verCode) ? RUtil.success("发送成功，注意查收学校邮箱邮件") :
+                RUtil.error(ResultCode.MAIL_SEND_ERROR);
+    }
+
+    @ApiOperation("")
+    @GetMapping("/phone/send")
+    public R<String> sendPhoneVerCode(@RequestParam String phone) {
+        if (!PhoneUtil.isPhone(phone)) {
+            return RUtil.error(ResultCode.PHONE_NO_WRONG_ERROR);
+        }
+        if (phoneService.checkSent(phone)) {
+            return RUtil.error(ResultCode.MESSAGE_HAS_SENT_ERROR);
+        }
+        return phoneService.sendVerCode(phone) ? RUtil.success("发送成功，注意查收短信") :
+                RUtil.error(ResultCode.MESSAGE_SEND_ERROR);
+    }
+
+    @ApiOperation("")
+    @PostMapping("/phone/login")
+    public R<LoginVo> verifyPhoneVerCode(@RequestBody PhoneAuthDto phoneAuthDto) {
+        return null;
+    }
+
+    @ApiOperation("")
+    @PostMapping("/manual")
+    public R<String> manualVerify(@Validated @RequestBody ManualVerifyDto manualVerifyDto) {
+        if (userService.checkUserIsVerified(UserHolder.getUserId())) {
+            return RUtil.error(ResultCode.HAS_VERIFIED_ERROR);
+        }
+        return mailService.sendToAuditor(manualVerifyDto) ? RUtil.success("提交成功，请耐心等待") :
+                RUtil.error(ResultCode.MAIL_SEND_ERROR);
+    }
+
+    @ApiOperation("")
+    @GetMapping("/manual/ok/{token}")
+    public void manualSetVerified(@PathVariable String token) {
+
+    }
+
+    @GetMapping("/manual/reject/{token}")
+    public void manualRejectVerify(@PathVariable String token) {
+
     }
 }

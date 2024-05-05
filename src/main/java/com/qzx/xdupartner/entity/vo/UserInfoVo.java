@@ -1,62 +1,37 @@
 package com.qzx.xdupartner.entity.vo;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
-import javax.validation.constraints.DecimalMax;
-import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.Size;
 import java.util.List;
 
 @Data
+@Accessors(chain = true)
+@ApiModel("用户详情")
 public class UserInfoVo {
-
-    /**
-     * 昵称
-     */
-    @Size(min = 1, max = 15, message = "昵称长度为1~15个字符")
+    @ApiModelProperty("用户id")
+    private Long userId;
+    @ApiModelProperty("昵称")
     private String nickName;
-    @Size(min = 1, max = 15, message = "专业名称长度为1~15个字符")
+    @ApiModelProperty("专业名")
     private String majorName;
-
-    /**
-     * 星座编号,具体星座在星座表里找
-     */
-    @DecimalMin(value = "1")
-    @DecimalMax(value = "12")
-    private Integer constellation;
-
-    /**
-     * 照片墙 最多三张 照片id 用_picture_分割
-     */
-    private List<String> picture;
-    /**
-     * qq号
-     */
-    @Size(max = 20)
+    @ApiModelProperty("是否认证")
+    private boolean isVerified;
+    @ApiModelProperty("qq")
     private String qq;
-
-    /**
-     * 头像
-     */
+    @ApiModelProperty("头像url")
     private String icon;
-
-    /**
-     * 200字以内描述自己
-     */
-    @Size(max = 200)
+    @ApiModelProperty("照片墙图片url")
+    private List<String> picture;
+    @ApiModelProperty("")
     private String myDescription;
+    @ApiModelProperty("需求倾向文案")
+    private String highTag;
+    @ApiModelProperty("人格类型文案")
+    private String mbti;
+    @ApiModelProperty("星座文案")
+    private String constellation;
 
-    /**
-     * 一级标签
-     */
-    @DecimalMin(value = "1")
-    @DecimalMax(value = "4")
-    private Integer highTag;
-
-    /**
-     * MBTI性格测试结果编号,16种具体在mbti表里
-     */
-    @DecimalMin(value = "1")
-    @DecimalMax(value = "16")
-    private Integer mbti;
 }

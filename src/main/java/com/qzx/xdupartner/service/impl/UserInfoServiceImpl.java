@@ -100,6 +100,8 @@ public class UserInfoServiceImpl implements UserInfoService {
         // 解密用户信息
         WxMaUserInfo wxMaUserInfo = wxMaService.getUserService().getUserInfo(userInfo.getSessionKey(),
                 userInfo.getEncryptedData(), userInfo.getIv());
+        wxMaUserInfo.getAvatarUrl();
+        wxMaUserInfo.getNickName();
         WxMaConfigHolder.remove();//清理ThreadLocal
         return wxMaUserInfo;
     }

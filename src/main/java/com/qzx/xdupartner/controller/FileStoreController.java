@@ -6,20 +6,21 @@ import com.aliyun.oss.OSSClientBuilder;
 import com.aliyun.oss.common.utils.BinaryUtil;
 import com.aliyun.oss.model.MatchMode;
 import com.aliyun.oss.model.PolicyConditions;
-import com.qzx.xdupartner.constant.RedisConstant;
 import com.qzx.xdupartner.entity.vo.R;
-import com.qzx.xdupartner.entity.vo.ResultCode;
 import com.qzx.xdupartner.service.impl.ScheduleMission;
+import com.qzx.xdupartner.util.RUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import javax.validation.constraints.NotBlank;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -34,7 +35,7 @@ import java.util.Map;
  * @author qzx
  * @since 2023-06-29
  */
-@Api
+@Api("oss文件上传控制层")
 @RestController
 @Slf4j
 @RequestMapping("/api/file")
@@ -50,19 +51,25 @@ public class FileStoreController {
     private String accessKey;
     @Value("${bucket}")
     private String bucket;
+    OSS ossClient = null;
+    String endpoint = "oss-cn-hangzhou.aliyuncs.com";
 
+    @PostConstruct
+    public void getOssClient() {
+        // 创建ossClient实例
+        ossClient = new OSSClientBuilder().build(endpoint, accessId, accessKey);
+    }
 
     @CrossOrigin
-    @ApiOperation("")
+    @ApiOperation("阿里云文件上传签名")
     @GetMapping("/oss/policy")
     public R<Map<String, String>> policy() {
-        String endpoint = "oss-cn-hangzhou.aliyuncs.com";
+
         String host = "https://" + bucket + "." + endpoint;
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         String date = dateFormat.format(new Date());
         String dir = "upload/" + date + "/";
-        // 创建ossClient实例。
-        OSS ossClient = new OSSClientBuilder().build(endpoint, accessId, accessKey);
+
         try {
             long expireTime = 300;
             long expireEndTime = System.currentTimeMillis() + expireTime * 1000;
@@ -83,20 +90,11 @@ public class FileStoreController {
             respMap.put("dir", dir);
             respMap.put("host", host);
             respMap.put("expire", String.valueOf(expireEndTime / 1000));
-            return new R<>(ResultCode.SUCCESS, respMap);
+            return RUtil.success(respMap);
         } catch (Exception e) {
             log.error(e.getMessage());
         }
         return null;
     }
-
-    @ApiOperation("")
-    @PostMapping(value = "/insertDict", produces = "application/json;charset=utf-8")
-    public void insertDict(@Validated @NotBlank(message = "词语不能为空") @RequestParam String keyword) {
-        String dict = stringRedisTemplate.opsForValue().get(RedisConstant.DICT_KEY);
-        stringRedisTemplate.opsForValue().set(RedisConstant.DICT_KEY, dict + keyword + " 1 n\n");
-        scheduleMission.update();
-    }
-
 }
 

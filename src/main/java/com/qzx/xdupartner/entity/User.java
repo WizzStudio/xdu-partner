@@ -1,11 +1,9 @@
 package com.qzx.xdupartner.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -19,6 +17,7 @@ import java.util.Date;
  * @since 2023-08-12
  */
 @Data
+@Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 public class User implements Serializable {
 
@@ -44,11 +43,6 @@ public class User implements Serializable {
      * 学号
      */
     private String stuId;
-
-    /**
-     * 密码
-     */
-    private String password;
 
     /**
      * 0否1是管理员
@@ -112,5 +106,15 @@ public class User implements Serializable {
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private Date updateTime;
 
+
+    /**
+     * 是否删除
+     */
+    @TableLogic(value = "0", delval = "1")
+    private Integer isDeleted;
+    /**
+     * 手机号
+     */
+    private String phone;
 
 }

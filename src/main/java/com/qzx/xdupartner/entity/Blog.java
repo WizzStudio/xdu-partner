@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -19,6 +20,7 @@ import java.util.Date;
  * @since 2023-08-12
  */
 @Data
+@Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 public class Blog implements Serializable {
 

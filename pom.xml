@@ -142,7 +142,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>com.tencentcloudapi</groupId>
+            <artifactId>tencentcloud-sdk-java</artifactId>
+            <version>4.0.11</version>
+        </dependency>
     </dependencies>
     <dependencyManagement>
         <dependencies>

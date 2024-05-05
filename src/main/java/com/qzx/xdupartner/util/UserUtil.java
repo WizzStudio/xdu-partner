@@ -3,26 +3,36 @@ package com.qzx.xdupartner.util;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
+import cn.hutool.json.JSONUtil;
+import com.qzx.xdupartner.constant.RedisConstant;
 import com.qzx.xdupartner.constant.SystemConstant;
 import com.qzx.xdupartner.entity.User;
+import com.qzx.xdupartner.entity.dto.UserInfoDto;
+import com.qzx.xdupartner.entity.enumeration.ConstellationEnum;
+import com.qzx.xdupartner.entity.enumeration.HighTag;
+import com.qzx.xdupartner.entity.enumeration.MbtiEnum;
 import com.qzx.xdupartner.entity.vo.UserInfoVo;
-import com.qzx.xdupartner.exception.ApiException;
+import com.qzx.xdupartner.exception.APIException;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class UserUtil {
-    public static User transferToUser(UserInfoVo userInfoVo) {
-        User user = BeanUtil.copyProperties(userInfoVo, User.class);
+
+    public static User transferToUser(UserInfoDto userInfoDto) {
+        User user = BeanUtil.copyProperties(userInfoDto, User.class);
         user.setId(UserHolder.getUserId());
 //        String icon = userInfoVo.getIcon();
 //        if (StrUtil.isNotBlank(icon))
 //            user.setIcon(AesUtil.decryptHex(icon));
-        user.setIcon(userInfoVo.getIcon());
-        List<String> picture = userInfoVo.getPicture();
+        user.setIcon(userInfoDto.getIcon());
+        List<String> picture = userInfoDto.getPicture();
         if (picture != null && !picture.isEmpty()) {
             if (picture.size() > 3) {
-                throw new ApiException("照片墙照片最多为3张");
+                throw new APIException("照片墙照片最多为3张");
             }
 //            List<String> collect = null;
 //            try {
@@ -41,7 +51,7 @@ public class UserUtil {
         return user;
     }
 
-    public static UserInfoVo getUserInfoVo(User user) {
+    public static UserInfoDto getUserInfoVo(User user) {
 //        FileStore icon = fileStoreService.getById(user.getIcon());
 //        if (icon == null) {
 //            user.setIcon(fileStoreService.getById(1L).getFileUri());
@@ -59,8 +69,40 @@ public class UserUtil {
         if (StrUtil.isNotBlank(picture)) {
             collect = Arrays.asList(picture.split(SystemConstant.PICTURE_CONJUNCTION));
         }
-        UserInfoVo userInfoVo = BeanUtil.toBean(user, UserInfoVo.class);
-        userInfoVo.setPicture(collect);
+        UserInfoDto userInfoDto = BeanUtil.toBean(user, UserInfoDto.class);
+        userInfoDto.setPicture(collect);
+        return userInfoDto;
+    }
+
+    public static User createUser(String phone, String openid) {
+        User user = new User()
+                .setPhone(phone)
+                .setOpenId(openid)
+                .setIcon(SystemConstant.DEFAULT_ICON_URL + RandomUtil.randomInt(SystemConstant.RANDOM_ICON_MIN,
+                        SystemConstant.RANDOM_ICON_MAX) +
+                        ".png")
+                .setMyDescription("写几句话来描述一下自己吧~");
+        StringRedisTemplate stringRedisTemplate = SpringUtil.getBean(StringRedisTemplate.class);
+        user.setNickName(SystemConstant.DEFAULT_NICKNAME +
+                stringRedisTemplate.opsForValue().increment(RedisConstant.DEFAULT_NICKNAME_INCREMENT));
+        return user;
+    }
+
+    public static void setRedisData(User user, String token) {
+        StringRedisTemplate stringRedisTemplate = SpringUtil.getBean(StringRedisTemplate.class);
+        stringRedisTemplate.opsForValue().set(RedisConstant.LOGIN_PREFIX + token, JSONUtil.toJsonStr(user),
+                RedisConstant.LOGIN_VALID_TTL, TimeUnit.DAYS);
+    }
+
+    public static UserInfoVo convertToUserInfoVo(User user) {
+        UserInfoVo userInfoVo = new UserInfoVo();
+        BeanUtil.copyProperties(user, userInfoVo, true);
+        userInfoVo.setUserId(user.getId())
+                .setConstellation(ConstellationEnum.match(user.getConstellation()).getTitle())
+                .setMbti(MbtiEnum.match(user.getMbti()).getTitle())
+                .setPicture(StrUtil.split(user.getPicture(), SystemConstant.PICTURE_CONJUNCTION))
+                .setHighTag(HighTag.match(user.getHighTag()).getDisplay())
+                .setVerified(StrUtil.isNotBlank(user.getStuId()));
         return userInfoVo;
     }
 }

@@ -23,14 +23,13 @@ public class BlogDto {
     /**
      * 一级分类
      */
-    @NotNull(message = "分区不应为空!")
-    @DecimalMax(value = "4", message = "分区应为1到4")
-    @DecimalMin(value = "1", message = "分区应为1到4")
+    @NotNull(message = "标签不应为空!")
+    @DecimalMax(value = "4", message = "标签应为1到4")
+    @DecimalMin(value = "1", message = "标签应为1到4")
     private Integer highTagId;
     /**
      * 二级分类
      */
-//    private String lowTags;
     private List<String> lowTags;
     /**
      * 具体时间
@@ -53,7 +52,6 @@ public class BlogDto {
     /**
      * 照片aes加密后的字符串,解密id后拼一起
      */
-    @NotNull(message = "图片列表可以提交空数组但不能不提交")
     private List<String> imageList;
 
     /**

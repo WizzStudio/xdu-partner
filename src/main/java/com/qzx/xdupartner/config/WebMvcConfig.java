@@ -24,19 +24,22 @@ public class WebMvcConfig implements WebMvcConfigurer {
             "/swagger-resources/**",
             "/v2/api-docs",
             "/v3/api-docs",
+
             "/webjars/**",
             "/static/**",
-            "/user/login",
-            "/blog/getTagWordCount",
-            "/blog/query**",
-            "/blog/readBlog",
-            "/blog/search*",
+
+            "/user/login", // todo
+            "/blog/getTagWordCount", // todo
+            "/blog/query**", //todo
+
+            "/blog/query/**",
+
+            "/blog/read",
+            "/blog/readBlog",//todo
+            "/blog/search*",//todo
             "/wx/user/**",
-            "/verify/sendCode"
-//            "/api/file/upload",
-//            "/upload/**"
-            //以下测试结束后删掉
-//            "/blog/**"
+            "/verify/sendCode",//todo
+
     };
     @Resource
     private TokenInterceptor tokenInterceptor;

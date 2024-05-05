@@ -8,7 +8,7 @@ import com.qzx.xdupartner.constant.RedisConstant;
 import com.qzx.xdupartner.constant.SystemConstant;
 import com.qzx.xdupartner.entity.User;
 import com.qzx.xdupartner.entity.vo.UserVo;
-import com.qzx.xdupartner.exception.ApiException;
+import com.qzx.xdupartner.exception.APIException;
 import com.qzx.xdupartner.mapper.UserMapper;
 import com.qzx.xdupartner.service.UserService;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -40,7 +40,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         User byId = getById(userId);
         if (byId == null) {
-            throw new ApiException("用户不存在！");
+            throw new APIException("用户不存在！");
         }
         UserVo userVo = new UserVo();
         userVo.setId(byId.getId());
@@ -67,6 +67,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 stringRedisTemplate.opsForValue().increment(RedisConstant.DEFAULT_NICKNAME_INCREMENT));
         save(user);
         return user;
+    }
+
+    @Override
+    public boolean checkUserIsVerified(Long userId) {
+        User byId = getById(userId);
+        return StrUtil.isNotBlank(byId.getStuId());
     }
 
 }

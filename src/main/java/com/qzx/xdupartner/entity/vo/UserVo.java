@@ -3,14 +3,20 @@ package com.qzx.xdupartner.entity.vo;
 import cn.hutool.core.util.RandomUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.qzx.xdupartner.constant.SystemConstant;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
+@ApiModel("简单用户展示")
 public class UserVo {
+    @ApiModelProperty("用户id")
     private Long id;
+    @ApiModelProperty("用户头像")
     private String icon;
+    @ApiModelProperty("昵称")
     private String nickName;
 
     public UserVo(String icon, String nickName) {

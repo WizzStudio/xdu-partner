@@ -18,4 +18,6 @@ public interface UserService extends IService<User> {
     UserVo getUserVoById(Long userId);
 
     User insertNewUser(String openId, String stuId);
+
+    boolean checkUserIsVerified(Long userId);
 }
