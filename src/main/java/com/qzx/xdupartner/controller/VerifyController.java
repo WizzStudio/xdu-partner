@@ -117,7 +117,10 @@ public class VerifyController {
     @ApiOperation("")
     @PostMapping("/phone/login")
     public R<LoginVo> verifyPhoneVerCode(@RequestBody PhoneAuthDto phoneAuthDto) {
-        return null;
+        if (!VerifyUtil.regexVerCode(phoneAuthDto.getVerCode()) || !PhoneUtil.isPhone(phoneAuthDto.getPhone())) {
+            return RUtil.error(ResultCode.VALIDATE_ERROR);
+        }
+        return RUtil.success(phoneService.verifyVerCode(phoneAuthDto));
     }
 
     @ApiOperation("")

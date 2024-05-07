@@ -1,5 +1,7 @@
 package com.qzx.xdupartner.util;
 
+import cn.hutool.core.util.StrUtil;
+
 import java.security.SecureRandom;
 import java.util.Random;
 
@@ -12,6 +14,7 @@ import java.util.Random;
 public class VerifyUtil {
     //邮箱字符串提取，去除了容易混淆的几个字符比如0,o~
     private static final String SYMBOLS = "23456789";
+    private static final int verCodeLength = 4;
     private static final Random RANDOM = new SecureRandom();
 
     /**
@@ -20,11 +23,16 @@ public class VerifyUtil {
      * @return 返回4位验证码
      */
     public static String getVerCode() {
-        char[] nonceChars = new char[4];
+
+        char[] nonceChars = new char[verCodeLength];
         for (int index = 0; index < nonceChars.length; ++index) {
             nonceChars[index] = SYMBOLS.charAt(RANDOM.nextInt(SYMBOLS.length()));
         }
         return new String(nonceChars);
+    }
+
+    public static boolean regexVerCode(String string) {
+        return StrUtil.isNumeric(string) && string.length() == verCodeLength;
     }
 }
 
