@@ -43,6 +43,76 @@ public class VerifyController {
     @Resource
     PhoneService phoneService;
 
+
+    @ApiOperation("")
+    @GetMapping("/email/send")
+    public R<String> sendEmailCode(@RequestParam String stuId) {
+        if (!(StrUtil.isNumeric(stuId) && stuId.length() == 11)) {
+            return new R<>(ResultCode.STU_ID_ERROR);
+        }
+        if (userService.checkUserIsVerified(UserHolder.getUserId())) {
+            return RUtil.error(ResultCode.HAS_VERIFIED_ERROR);
+        }
+        String verCode = VerifyUtil.getVerCode();
+        return mailService.sendVerifyEmail(stuId, verCode) ? RUtil.success("发送成功，注意查收学校邮箱邮件") :
+                RUtil.error(ResultCode.MAIL_SEND_ERROR);
+    }
+
+    @ApiOperation("")
+    @GetMapping("/phone/send")
+    public R<String> sendPhoneVerCode(@RequestParam String phone) {
+        if (!PhoneUtil.isPhone(phone)) {
+            return RUtil.error(ResultCode.PHONE_NO_WRONG_ERROR);
+        }
+        if (phoneService.checkSent(phone)) {
+            return RUtil.error(ResultCode.MESSAGE_HAS_SENT_ERROR);
+        }
+        return phoneService.sendVerCode(phone) ? RUtil.success("发送成功，注意查收短信") :
+                RUtil.error(ResultCode.MESSAGE_SEND_ERROR);
+    }
+
+    @ApiOperation("")
+    @PostMapping("/phone/login")
+    public R<LoginVo> verifyPhoneVerCode(@RequestBody PhoneAuthDto phoneAuthDto) {
+        if (!VerifyUtil.regexVerCode(phoneAuthDto.getVerCode()) || !PhoneUtil.isPhone(phoneAuthDto.getPhone())) {
+            return RUtil.error(ResultCode.VALIDATE_ERROR);
+        }
+        return RUtil.success(phoneService.verifyVerCode(phoneAuthDto));
+    }
+
+    @ApiOperation("")
+    @PostMapping("/manual")
+    public R<String> manualVerify(@Validated @RequestBody ManualVerifyDto manualVerifyDto) {
+        if (userService.checkUserIsVerified(UserHolder.getUserId())) {
+            return RUtil.error(ResultCode.HAS_VERIFIED_ERROR);
+        }
+        return mailService.sendToAuditor(manualVerifyDto) ? RUtil.success("提交成功，请耐心等待") :
+                RUtil.error(ResultCode.MAIL_SEND_ERROR);
+    }
+
+    @ApiOperation("")
+    @GetMapping("/manual/confirm/{token}")
+    public void manualSetVerified(@PathVariable String token) {
+        ManualVerifyDto manualVerifyDto = explainToken(token);
+        userService.lambdaUpdate().eq(User::getId, Long.valueOf(token)).set(User::getStuId,
+                manualVerifyDto.getStuId()).update();
+        mailService.sendVerifiedEmail(manualVerifyDto);
+    }
+
+    @GetMapping("/manual/reject/{token}")
+    public void manualRejectVerify(@PathVariable String token) {
+        ManualVerifyDto manualVerifyDto = explainToken(token);
+        mailService.sendUnVerifiedEmail(manualVerifyDto);
+    }
+
+    private ManualVerifyDto explainToken(String token) {
+        String jsonStr = stringRedisTemplate.opsForValue().get(RedisConstant.MAIL_VERIFY_PREFIX + token);
+        if (StrUtil.isBlank(jsonStr)) {
+            throw new APIException(ResultCode.VERIFY_TOKEN_ERROR);
+        }
+        return JSONUtil.toBean(jsonStr, ManualVerifyDto.class);
+    }
+
     @Deprecated
     @ApiOperation("")
     @GetMapping("/sendCode")
@@ -86,74 +156,4 @@ public class VerifyController {
                 RedisConstant.LOGIN_VALID_TTL, TimeUnit.DAYS);
         return RUtil.success(sessionKey);
     }
-
-    @ApiOperation("")
-    @GetMapping("/email/send")
-    public R<String> sendEmailCode(@RequestParam String stuId) {
-        if (!(StrUtil.isNumeric(stuId) && stuId.length() == 11)) {
-            return new R<>(ResultCode.STU_ID_ERROR);
-        }
-        if (userService.checkUserIsVerified(UserHolder.getUserId())) {
-            return RUtil.error(ResultCode.HAS_VERIFIED_ERROR);
-        }
-        String verCode = VerifyUtil.getVerCode();
-        return mailService.sendVerifyEmail(stuId, verCode) ? RUtil.success("发送成功，注意查收学校邮箱邮件") :
-                RUtil.error(ResultCode.MAIL_SEND_ERROR);
-    }
-
-    @ApiOperation("")
-    @GetMapping("/phone/send")
-    public R<String> sendPhoneVerCode(@RequestParam String phone) {
-        if (!PhoneUtil.isPhone(phone)) {
-            return RUtil.error(ResultCode.PHONE_NO_WRONG_ERROR);
-        }
-        if (phoneService.checkSent(phone)) {
-            return RUtil.error(ResultCode.MESSAGE_HAS_SENT_ERROR);
-        }
-        return phoneService.sendVerCode(phone) ? RUtil.success("发送成功，注意查收短信") :
-                RUtil.error(ResultCode.MESSAGE_SEND_ERROR);
-    }
-
-    @ApiOperation("")
-    @PostMapping("/phone/login")
-    public R<LoginVo> verifyPhoneVerCode(@RequestBody PhoneAuthDto phoneAuthDto) {
-        if (!VerifyUtil.regexVerCode(phoneAuthDto.getVerCode()) || !PhoneUtil.isPhone(phoneAuthDto.getPhone())) {
-            return RUtil.error(ResultCode.VALIDATE_ERROR);
-        }
-        return RUtil.success(phoneService.verifyVerCode(phoneAuthDto));
-    }
-
-    @ApiOperation("")
-    @PostMapping("/manual")
-    public R<String> manualVerify(@Validated @RequestBody ManualVerifyDto manualVerifyDto) {
-//        if (userService.checkUserIsVerified(UserHolder.getUserId())) {
-//            return RUtil.error(ResultCode.HAS_VERIFIED_ERROR);
-//        }
-        return mailService.sendToAuditor(manualVerifyDto) ? RUtil.success("提交成功，请耐心等待") :
-                RUtil.error(ResultCode.MAIL_SEND_ERROR);
-    }
-
-    @ApiOperation("")
-    @GetMapping("/manual/confirm/{token}")
-    public void manualSetVerified(@PathVariable String token) {
-        ManualVerifyDto manualVerifyDto = explainToken(token);
-        userService.lambdaUpdate().eq(User::getId, Long.valueOf(token)).set(User::getStuId,
-                manualVerifyDto.getStuId()).update();
-        mailService.sendVerifiedEmail(manualVerifyDto);
-    }
-
-    @GetMapping("/manual/reject/{token}")
-    public void manualRejectVerify(@PathVariable String token) {
-        ManualVerifyDto manualVerifyDto = explainToken(token);
-        mailService.sendUnVerifiedEmail(manualVerifyDto);
-    }
-
-    private ManualVerifyDto explainToken(String token) {
-        String jsonStr = stringRedisTemplate.opsForValue().get(RedisConstant.MAIL_VERIFY_PREFIX + token);
-        if (StrUtil.isBlank(jsonStr)) {
-            throw new APIException(ResultCode.VERIFY_TOKEN_ERROR);
-        }
-        return JSONUtil.toBean(jsonStr, ManualVerifyDto.class);
-    }
-
 }

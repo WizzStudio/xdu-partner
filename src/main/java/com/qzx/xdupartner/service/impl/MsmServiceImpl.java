@@ -2,7 +2,6 @@ package com.qzx.xdupartner.service.impl;
 
 import com.qzx.xdupartner.service.MsmService;
 import com.qzx.xdupartner.util.MsmConstantUtils;
-import com.qzx.xdupartner.util.VerifyUtil;
 import com.tencentcloudapi.common.Credential;
 import com.tencentcloudapi.common.profile.ClientProfile;
 import com.tencentcloudapi.common.profile.HttpProfile;
@@ -17,7 +16,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class MsmServiceImpl implements MsmService {
     @Override
-    public boolean send(String phone) {
+    public boolean send(String phone, String verificationCode) {
         try {
             //这里是实例化一个Credential，也就是认证对象，参数是密钥对；你要使用肯定要进行认证
             Credential credential = new Credential(MsmConstantUtils.SECRET_ID, MsmConstantUtils.SECRET_KEY);
@@ -26,7 +25,7 @@ public class MsmServiceImpl implements MsmService {
             //最简单的就是实例化该对象即可，它的构造方法已经帮我们设置了一些默认的值
             HttpProfile httpProfile = new HttpProfile();
             //这个setEndpoint可以省略的
-            httpProfile.setEndpoint(MsmConstantUtils.END_POINT);
+//            httpProfile.setEndpoint(MsmConstantUtils.END_POINT);
 
             //实例化一个客户端配置对象,这个配置可以进行签名（使用私钥进行加密的过程），对方可以利用公钥进行解密
             ClientProfile clientProfile = new ClientProfile();
@@ -43,8 +42,7 @@ public class MsmServiceImpl implements MsmService {
             request.setSign(MsmConstantUtils.SIGN_NAME);
             request.setTemplateID(MsmConstantUtils.TEMPLATE_ID);
             //生成随机验证码，我的模板内容的参数只有一个
-            String verificationCode = VerifyUtil.getVerCode();
-            String[] templateParamSet = {verificationCode};
+            String[] templateParamSet = {verificationCode, "5"};
             request.setTemplateParamSet(templateParamSet);
 
             //发送短信

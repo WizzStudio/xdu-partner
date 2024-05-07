@@ -9,22 +9,27 @@ import com.qzx.xdupartner.entity.dto.PhoneAuthDto;
 import com.qzx.xdupartner.entity.vo.LoginVo;
 import com.qzx.xdupartner.entity.vo.ResultCode;
 import com.qzx.xdupartner.exception.APIException;
+import com.qzx.xdupartner.service.MsmService;
 import com.qzx.xdupartner.service.PhoneService;
 import com.qzx.xdupartner.service.UserService;
 import com.qzx.xdupartner.util.UserUtil;
 import com.qzx.xdupartner.util.VerifyUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
 public class PhoneServiceImpl implements PhoneService {
     @Resource
     StringRedisTemplate stringRedisTemplate;
     @Resource
     UserService userService;
+    @Resource
+    MsmService msmService;
 
     @Override
     public boolean checkSent(String phone) {
@@ -35,8 +40,11 @@ public class PhoneServiceImpl implements PhoneService {
     @Override
     public boolean sendVerCode(String phone) {
         String verCode = VerifyUtil.getVerCode();
-        //todo 发送短信
-
+        boolean sent = msmService.send(phone, verCode);
+        log.info("send tencent phone msg: phone:[{}] vcode:[{}]", phone, verCode);
+        if (!sent) {
+            throw new APIException(ResultCode.MESSAGE_SEND_ERROR);
+        }
         stringRedisTemplate.opsForValue().set(RedisConstant.PHONE_LOGIN_PREFIX + phone, verCode, 5, TimeUnit.MINUTES);
         return true;
     }
