@@ -1,6 +1,5 @@
 package com.qzx.xdupartner.util;
 
-import cn.hutool.core.util.PhoneUtil;
 import cn.hutool.core.util.StrUtil;
 
 import java.security.SecureRandom;
@@ -36,8 +35,5 @@ public class VerifyUtil {
         return StrUtil.isNumeric(string) && string.length() == verCodeLength;
     }
 
-    public static void main(String[] args) {
-        System.out.println(PhoneUtil.isPhone("18622189436"));
-    }
 }
 
