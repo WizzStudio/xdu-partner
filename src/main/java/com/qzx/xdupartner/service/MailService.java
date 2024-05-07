@@ -13,4 +13,8 @@ public interface MailService {
     boolean sendVerifyEmail(String stuId, String verCode);
 
     boolean sendToAuditor(ManualVerifyDto manualVerifyDto);
+
+    void sendVerifiedEmail(ManualVerifyDto manualVerifyDto);
+
+    void sendUnVerifiedEmail(ManualVerifyDto manualVerifyDto);
 }

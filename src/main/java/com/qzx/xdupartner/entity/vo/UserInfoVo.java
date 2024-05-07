@@ -28,10 +28,15 @@ public class UserInfoVo {
     @ApiModelProperty("")
     private String myDescription;
     @ApiModelProperty("需求倾向文案")
-    private String highTag;
+    private String highTagDesc;
     @ApiModelProperty("人格类型文案")
-    private String mbti;
+    private String mbtiDesc;
     @ApiModelProperty("星座文案")
-    private String constellation;
-
+    private String constellationDesc;
+    @ApiModelProperty("星座枚举")
+    private Integer constellation;
+    @ApiModelProperty("需求倾向枚举")
+    private Integer highTag;
+    @ApiModelProperty("人格类型枚举")
+    private Integer mbti;
 }

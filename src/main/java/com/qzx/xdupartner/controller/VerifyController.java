@@ -11,12 +11,13 @@ import com.qzx.xdupartner.entity.dto.PhoneAuthDto;
 import com.qzx.xdupartner.entity.vo.LoginVo;
 import com.qzx.xdupartner.entity.vo.R;
 import com.qzx.xdupartner.entity.vo.ResultCode;
+import com.qzx.xdupartner.exception.APIException;
 import com.qzx.xdupartner.service.MailService;
 import com.qzx.xdupartner.service.PhoneService;
 import com.qzx.xdupartner.service.UserService;
 import com.qzx.xdupartner.util.RUtil;
 import com.qzx.xdupartner.util.UserHolder;
-import com.qzx.xdupartner.util.VerCodeGenerateUtil;
+import com.qzx.xdupartner.util.VerifyUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +50,7 @@ public class VerifyController {
         if (!(StrUtil.isNumeric(stuId) && stuId.length() == 11)) {
             return new R<>(ResultCode.STU_ID_ERROR);
         }
-        String verCode = VerCodeGenerateUtil.getVerCode();
+        String verCode = VerifyUtil.getVerCode();
         boolean isSend = mailService.sendVerifyEmail(stuId, verCode);
         if (isSend) {
             //发送验证码成功
@@ -95,7 +96,7 @@ public class VerifyController {
         if (userService.checkUserIsVerified(UserHolder.getUserId())) {
             return RUtil.error(ResultCode.HAS_VERIFIED_ERROR);
         }
-        String verCode = VerCodeGenerateUtil.getVerCode();
+        String verCode = VerifyUtil.getVerCode();
         return mailService.sendVerifyEmail(stuId, verCode) ? RUtil.success("发送成功，注意查收学校邮箱邮件") :
                 RUtil.error(ResultCode.MAIL_SEND_ERROR);
     }
@@ -122,21 +123,34 @@ public class VerifyController {
     @ApiOperation("")
     @PostMapping("/manual")
     public R<String> manualVerify(@Validated @RequestBody ManualVerifyDto manualVerifyDto) {
-        if (userService.checkUserIsVerified(UserHolder.getUserId())) {
-            return RUtil.error(ResultCode.HAS_VERIFIED_ERROR);
-        }
+//        if (userService.checkUserIsVerified(UserHolder.getUserId())) {
+//            return RUtil.error(ResultCode.HAS_VERIFIED_ERROR);
+//        }
         return mailService.sendToAuditor(manualVerifyDto) ? RUtil.success("提交成功，请耐心等待") :
                 RUtil.error(ResultCode.MAIL_SEND_ERROR);
     }
 
     @ApiOperation("")
-    @GetMapping("/manual/ok/{token}")
+    @GetMapping("/manual/confirm/{token}")
     public void manualSetVerified(@PathVariable String token) {
-
+        ManualVerifyDto manualVerifyDto = explainToken(token);
+        userService.lambdaUpdate().eq(User::getId, Long.valueOf(token)).set(User::getStuId,
+                manualVerifyDto.getStuId()).update();
+        mailService.sendVerifiedEmail(manualVerifyDto);
     }
 
     @GetMapping("/manual/reject/{token}")
     public void manualRejectVerify(@PathVariable String token) {
-
+        ManualVerifyDto manualVerifyDto = explainToken(token);
+        mailService.sendUnVerifiedEmail(manualVerifyDto);
     }
+
+    private ManualVerifyDto explainToken(String token) {
+        String jsonStr = stringRedisTemplate.opsForValue().get(RedisConstant.MAIL_VERIFY_PREFIX + token);
+        if (StrUtil.isBlank(jsonStr)) {
+            throw new APIException(ResultCode.VERIFY_TOKEN_ERROR);
+        }
+        return JSONUtil.toBean(jsonStr, ManualVerifyDto.class);
+    }
+
 }

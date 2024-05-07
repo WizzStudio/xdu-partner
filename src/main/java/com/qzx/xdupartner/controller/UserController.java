@@ -9,6 +9,7 @@ import com.qzx.xdupartner.entity.dto.UserInfoDto;
 import com.qzx.xdupartner.entity.vo.BlogVo;
 import com.qzx.xdupartner.entity.vo.R;
 import com.qzx.xdupartner.entity.vo.ResultCode;
+import com.qzx.xdupartner.entity.vo.UserInfoVo;
 import com.qzx.xdupartner.exception.APIException;
 import com.qzx.xdupartner.service.BlogService;
 import com.qzx.xdupartner.service.UserService;
@@ -63,11 +64,12 @@ public class UserController {
         return "修改成功";
     }
 
+
     @ApiOperation("")
-    @GetMapping(value = "/me")
-    public R<UserInfoDto> ofMe() {
+    @GetMapping(value = "/me/info")
+    public R<UserInfoVo> ofMeINfo() {
         User user = userService.getById(UserHolder.getUserId());
-        return RUtil.success(UserUtil.getUserInfoVo(user));
+        return RUtil.success(UserUtil.convertToUserInfoVo(user));
     }
 
 
@@ -87,12 +89,12 @@ public class UserController {
 
     @ApiOperation("")
     @GetMapping(value = "/other/{userId}")
-    public R<UserInfoDto> queryOtherV2(@PathVariable Long userId) {
+    public R<UserInfoVo> queryOtherV2(@PathVariable Long userId) {
         User byId = userService.getById(userId);
         if (byId == null) {
             throw new APIException("用户不存在！");
         }
-        return RUtil.success(UserUtil.getUserInfoVo(byId));
+        return RUtil.success(UserUtil.convertToUserInfoVo(byId));
 
     }
 
@@ -149,6 +151,14 @@ public class UserController {
         UserHolder.saveUser(userService.getById(UserHolder.getUserId()));
         stringRedisTemplate.delete(RedisConstant.USERVO_CACHE + UserHolder.getUserId());
         return "修改成功";
+    }
+
+    @Deprecated
+    @ApiOperation("")
+    @GetMapping(value = "/me")
+    public R<UserInfoDto> ofMe() {
+        User user = userService.getById(UserHolder.getUserId());
+        return RUtil.success(UserUtil.getUserInfoVo(user));
     }
 }
 

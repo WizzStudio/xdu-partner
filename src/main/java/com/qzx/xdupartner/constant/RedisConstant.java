@@ -35,4 +35,5 @@ public class RedisConstant {
 
 
     public static final String PHONE_LOGIN_PREFIX = "phone:login:";
+    public static final String MAIL_VERIFY_PREFIX = "mail:verify:manual:";
 }

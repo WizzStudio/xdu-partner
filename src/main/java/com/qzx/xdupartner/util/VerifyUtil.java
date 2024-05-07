@@ -9,7 +9,7 @@ import java.util.Random;
  * @Date 2020-01-20 17:03
  * @Version 1.0
  */
-public class VerCodeGenerateUtil {
+public class VerifyUtil {
     //邮箱字符串提取，去除了容易混淆的几个字符比如0,o~
     private static final String SYMBOLS = "23456789";
     private static final Random RANDOM = new SecureRandom();

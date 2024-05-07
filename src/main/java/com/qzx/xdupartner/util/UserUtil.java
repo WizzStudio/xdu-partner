@@ -98,10 +98,13 @@ public class UserUtil {
         UserInfoVo userInfoVo = new UserInfoVo();
         BeanUtil.copyProperties(user, userInfoVo, true);
         userInfoVo.setUserId(user.getId())
-                .setConstellation(ConstellationEnum.match(user.getConstellation()).getTitle())
-                .setMbti(MbtiEnum.match(user.getMbti()).getTitle())
+                .setConstellation(user.getConstellation())
+                .setConstellationDesc(ConstellationEnum.match(user.getConstellation()).getTitle())
+                .setMbti(user.getMbti())
+                .setMbtiDesc(MbtiEnum.match(user.getMbti()).getTitle())
                 .setPicture(StrUtil.split(user.getPicture(), SystemConstant.PICTURE_CONJUNCTION))
-                .setHighTag(HighTag.match(user.getHighTag()).getDisplay())
+                .setHighTag(user.getHighTag())
+                .setHighTagDesc(HighTag.match(user.getHighTag()).getDisplay())
                 .setVerified(StrUtil.isNotBlank(user.getStuId()));
         return userInfoVo;
     }

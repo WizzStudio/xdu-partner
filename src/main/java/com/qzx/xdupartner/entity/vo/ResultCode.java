@@ -19,7 +19,7 @@ public enum ResultCode implements StatusCode {
     HAS_VERIFIED_ERROR(2009, "账户已认证过，请勿重复认证哦"),
     PHONE_NO_WRONG_ERROR(2010, "手机号格式错误"),
     MESSAGE_SEND_ERROR(2011, "发送短信失败，请稍后再试"),
-    MESSAGE_HAS_SENT_ERROR(2012, "短信5分钟内有效，请勿重复发送");
+    MESSAGE_HAS_SENT_ERROR(2012, "短信5分钟内有效，请勿重复发送"), VERIFY_TOKEN_ERROR(2013, "token不存在");
     @ApiModelProperty("返回状态码")
     private final int code;
     @ApiModelProperty("信息-错误时用其内容")
