@@ -34,7 +34,7 @@ public class PhoneServiceImpl implements PhoneService {
     @Override
     public boolean checkSent(String phone) {
         String val = stringRedisTemplate.opsForValue().get(RedisConstant.PHONE_LOGIN_PREFIX + phone);
-        return StrUtil.isBlank(val);
+        return StrUtil.isNotBlank(val);
     }
 
     @Override

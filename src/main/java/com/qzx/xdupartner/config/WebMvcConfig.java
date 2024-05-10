@@ -18,6 +18,27 @@ import javax.annotation.Resource;
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
+    public static final String[] URL_WHITELISTS_V2 = {
+            //swagger
+            "/swagger-ui.html",
+            "/swagger-ui/*",
+            "/swagger-resources/**",
+            "/v2/api-docs",
+            "/v3/api-docs",
+            //static
+            "/webjars/**",
+            "/static/**",
+            //blog
+            "/blog/query/**",
+            //constellation
+            "/constellation/**",
+            //mbti
+            "/mbti/**",
+            //verify
+            "/verify/phone/**",
+            //wx
+            "/wx/user/**"
+    };
     public static final String[] URL_WHITELISTS = {
             "/swagger-ui.html",
             "/swagger-ui/*",
@@ -39,8 +60,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
             "/blog/search*",//todo
             "/wx/user/**",
             "/verify/sendCode",//todo
-
+            //verify
+            "/verify/phone/**",
     };
+
     @Resource
     private TokenInterceptor tokenInterceptor;
     @Resource

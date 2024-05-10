@@ -70,6 +70,13 @@ public class WechatController {
         return RUtil.success(login);
     }
 
+
+    @ApiOperation("")
+    @PostMapping("/login/phone")
+    public R<LoginVo> login(@Validated @RequestBody @NotNull WxPhoneAuthDto wxPhoneAuthDto) {
+        return RUtil.success(weChatService.loginByPhoneCode(wxPhoneAuthDto));
+    }
+
     /**
      * <pre>
      * 获取用户信息接口
@@ -81,12 +88,5 @@ public class WechatController {
     public R<WxMaUserInfo> getUserInfo(@RequestBody WxUserInfo userInfo) {
         return RUtil.success(userInfoService.getUserInfo(userInfo));
     }
-
-    @ApiOperation("")
-    @PostMapping("/login/phone")
-    public R<LoginVo> login(@Validated @RequestBody @NotNull WxPhoneAuthDto wxPhoneAuthDto) {
-        return RUtil.success(weChatService.loginByPhoneCode(wxPhoneAuthDto));
-    }
-
 }
 
