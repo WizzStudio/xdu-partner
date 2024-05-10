@@ -8,6 +8,8 @@ import lombok.Getter;
 @ApiModel("返回状态结构体")
 public enum ResultCode implements StatusCode {
     SUCCESS(1000, "请求成功"),
+
+    LOGIN_UNVALID(2000, "登录过期"),
     FAILED(2001, "请求失败"),
     VALIDATE_ERROR(2002, "请求参数有误"),
     UNKNOWN_ERROR(2003, "未知错误"),

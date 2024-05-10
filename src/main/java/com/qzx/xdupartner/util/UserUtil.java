@@ -77,11 +77,14 @@ public class UserUtil {
     public static User createUser(String phone, String openid) {
         User user = new User()
                 .setPhone(phone)
-                .setOpenId(openid)
+
                 .setIcon(SystemConstant.DEFAULT_ICON_URL + RandomUtil.randomInt(SystemConstant.RANDOM_ICON_MIN,
                         SystemConstant.RANDOM_ICON_MAX) +
                         ".png")
                 .setMyDescription("写几句话来描述一下自己吧~");
+        if (openid != null) {
+            user.setOpenId(openid);
+        }
         StringRedisTemplate stringRedisTemplate = SpringUtil.getBean(StringRedisTemplate.class);
         user.setNickName(SystemConstant.DEFAULT_NICKNAME +
                 stringRedisTemplate.opsForValue().increment(RedisConstant.DEFAULT_NICKNAME_INCREMENT));

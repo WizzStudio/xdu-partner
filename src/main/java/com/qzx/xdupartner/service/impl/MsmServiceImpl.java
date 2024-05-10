@@ -36,7 +36,7 @@ public class MsmServiceImpl implements MsmService {
 
             //实例化request封装请求信息
             SendSmsRequest request = new SendSmsRequest();
-            String[] phoneNumber = {phone};
+            String[] phoneNumber = {"+86 " + phone};
             request.setPhoneNumberSet(phoneNumber);     //设置手机号
             request.setSmsSdkAppid(MsmConstantUtils.APP_ID);
             request.setSign(MsmConstantUtils.SIGN_NAME);
@@ -45,7 +45,7 @@ public class MsmServiceImpl implements MsmService {
             String[] templateParamSet = {verificationCode, "5"};
             request.setTemplateParamSet(templateParamSet);
 
-            //发送短信
+//             发送短信
             SendSmsResponse response = smsClient.SendSms(request);
             log.info(SendSmsResponse.toJsonString(response));
             return true;
