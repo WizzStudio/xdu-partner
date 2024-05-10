@@ -83,17 +83,17 @@ public class User implements Serializable {
     /**
      * 需求倾向
      */
-    private Integer highTag;
+    private Integer highTag = 0;
 
     /**
      * MBTI性格测试结果编号,16种具体在mbti表里
      */
-    private Integer mbti;
+    private Integer mbti = 0;
 
     /**
      * 星座编号,具体星座在星座表里找
      */
-    private Integer constellation;
+    private Integer constellation = 0;
 
     /**
      * 创建时间

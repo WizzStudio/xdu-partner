@@ -105,7 +105,8 @@ public class UserUtil {
                 .setConstellationDesc(ConstellationEnum.match(user.getConstellation()).getTitle())
                 .setMbti(user.getMbti())
                 .setMbtiDesc(MbtiEnum.match(user.getMbti()).getTitle())
-                .setPicture(StrUtil.split(user.getPicture(), SystemConstant.PICTURE_CONJUNCTION))
+                .setPicture(StrUtil.split(StrUtil.blankToDefault(user.getPicture(), ""),
+                        SystemConstant.PICTURE_CONJUNCTION))
                 .setHighTag(user.getHighTag())
                 .setHighTagDesc(HighTag.match(user.getHighTag()).getDisplay())
                 .setVerified(StrUtil.isNotBlank(user.getStuId()));

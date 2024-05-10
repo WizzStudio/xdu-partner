@@ -26,7 +26,7 @@ public enum MbtiEnum {
     private final int id;
     private final String title;
 
-    public static MbtiEnum match(int code) {
+    public static MbtiEnum match(Integer code) {
         for (MbtiEnum mbtiEnum : MbtiEnum.values()) {
             if (mbtiEnum.id == code) return mbtiEnum;
         }

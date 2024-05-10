@@ -26,7 +26,7 @@ public enum ConstellationEnum {
     private final String title;
     private final String description;
 
-    public static ConstellationEnum match(int code) {
+    public static ConstellationEnum match(Integer code) {
         for (ConstellationEnum constellation : ConstellationEnum.values()) {
             if (constellation.id == code) return constellation;
         }
