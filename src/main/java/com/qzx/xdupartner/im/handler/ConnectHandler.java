@@ -21,9 +21,8 @@ public class ConnectHandler {
     public void execute(ReqMessage reqMessage, ChannelHandlerContext ctx) {
         User user =
                 JSONUtil.toBean(stringRedisTemplate.opsForValue().get(RedisConstant.LOGIN_PREFIX + reqMessage.getToken()), User.class);
-        if (!reqMessage.getFromId().equals(user.getId())) {
+        if (!user.getId().equals(reqMessage.getFromId())) {
             ctx.channel().writeAndFlush(RspMessage.getSystemTextFrame("token有误"));
-
             OnlineUserHolder.removeChannel(ctx);
             return;
         }
