@@ -9,7 +9,9 @@ import com.qzx.xdupartner.entity.vo.R;
 import com.qzx.xdupartner.entity.vo.ResultCode;
 import com.qzx.xdupartner.exception.APIException;
 import com.qzx.xdupartner.service.BlogService;
+import com.qzx.xdupartner.service.UserService;
 import com.qzx.xdupartner.util.RUtil;
+import com.qzx.xdupartner.util.UserHolder;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.validation.annotation.Validated;
@@ -39,6 +41,8 @@ public class BlogController {
 
     @Resource
     private BlogService blogService;
+    @Resource
+    private UserService userService;
 
     @ApiOperation("点赞")
     @GetMapping("/like/{id}")
@@ -51,6 +55,9 @@ public class BlogController {
     @ApiOperation("发布帖子")
     @PostMapping(value = "/publish", produces = "application/json;charset=utf-8")
     public R<String> publishBlogV2(@Validated @RequestBody @NotNull(message = "需要提交帖子") BlogDto blogDto) {
+        if (!userService.checkUserIsVerified(UserHolder.getUserId())) {
+            return RUtil.error(ResultCode.UNVERIFIED_ERROR);
+        }
         checkListInBlogDto(blogDto);
         Blog blog = convertToBlog(blogDto);
         blogService.saveBlog(blog, doExplainTags(blogDto));

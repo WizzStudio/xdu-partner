@@ -59,6 +59,28 @@ public class VerifyController {
     }
 
     @ApiOperation("")
+    @GetMapping("/email/verify")
+    public R<String> verifyEmailCode(@RequestParam String stuId, @RequestParam String code) {
+        if (!(StrUtil.isNumeric(stuId) && stuId.length() == 11)) {
+            return new R<>(ResultCode.STU_ID_ERROR);
+        }
+        if (userService.checkUserIsVerified(UserHolder.getUserId())) {
+            return RUtil.error(ResultCode.HAS_VERIFIED_ERROR);
+        }
+        //验证邮箱
+        String realCode = stringRedisTemplate.opsForValue().get(RedisConstant.MAIL_CODE_PREFIX + stuId);
+        if (!code.equals(realCode)) {
+            return RUtil.error(ResultCode.MAIL_CODE_ERROR);
+        }
+        boolean update = userService.lambdaUpdate().eq(User::getId, UserHolder.getUserId()).set(User::getStuId,
+                stuId).update();
+        if (!update) {
+            return RUtil.error(ResultCode.UNKNOWN_ERROR);
+        }
+        return RUtil.success("认证成功");
+    }
+
+    @ApiOperation("")
     @GetMapping("/phone/send")
     public R<String> sendPhoneVerCode(@RequestParam String phone) {
         if (!PhoneUtil.isPhone(phone)) {
